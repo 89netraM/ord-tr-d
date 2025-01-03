@@ -1,0 +1,105 @@
+const guessTextbox = document.getElementById("guess-textbox") as HTMLInputElement;
+const guessLetters = document.querySelectorAll(".guess-letter") as NodeListOf<HTMLSpanElement>;
+const guessButton = document.getElementById("guess-button") as HTMLButtonElement;
+
+guessTextbox.addEventListener(
+    "input",
+    _ => {
+        updateLetterSelection();
+        guessTextbox.value = guessTextbox.value.toLowerCase().substring(0, 4);
+        guessLetters.forEach(
+            (letter, i) => {
+                letter.textContent = guessTextbox.value[i] ?? "";
+            }
+        );
+    }
+);
+guessTextbox.addEventListener("selectionchange", updateLetterSelection);
+guessTextbox.addEventListener(
+    "blur",
+    _ => {
+        guessLetters.forEach(
+            letter => letter.classList.remove("selected")
+        );
+    }
+);
+guessTextbox.addEventListener(
+    "keydown",
+    e => {
+        if (e.key === "Enter") {
+            e.target?.dispatchEvent(new GuessEvent(guessTextbox.value));
+        }
+    }
+);
+
+guessButton.addEventListener(
+    "click",
+    e => {
+        e.target?.dispatchEvent(new GuessEvent(guessTextbox.value));
+    }
+);
+
+guessLetters.forEach(
+    (letter, i) => {
+        letter.addEventListener(
+            "click",
+            _ => {
+                guessTextbox.focus();
+                guessTextbox.setSelectionRange(i, i + 1);
+            }
+        );
+    }
+);
+
+function updateLetterSelection() {
+    guessLetters.forEach(
+        (letter, i) => {
+            if (i === guessTextbox.selectionStart) {
+                letter.classList.add("selected");
+            } else {
+                letter.classList.remove("selected");
+            }
+        }
+    );
+}
+
+export const input = document.getElementById("input") as GuessInput;
+
+const shakeAnimation: Array<Keyframe> = [
+    { transform: "translateX(-0.25em)" },
+    { transform: "translateX(0.25em)" },
+];
+const shakeTiming: KeyframeAnimationOptions = {
+    duration: 75,
+    iterations: 4,
+    direction: "alternate",
+    easing: "ease-in-out",
+};
+input.shake = () => {
+    guessLetters.forEach(guessLetter => guessLetter.animate(shakeAnimation, shakeTiming));
+    guessButton.animate(shakeAnimation, shakeTiming);
+};
+
+input.clear = () => {
+    guessTextbox.value = "";
+    guessLetters.forEach(letter => letter.textContent = "");
+    updateLetterSelection();
+};
+
+export interface GuessInput extends HTMLDivElement {
+    addEventListener<K extends keyof GlobalEventHandlersEventMap | "guess">(
+        type: K,
+        listener: (this: GuessInput, e: K extends keyof GlobalEventHandlersEventMap ? GlobalEventHandlersEventMap[K] : GuessEvent) => any,
+        options?: boolean | AddEventListenerOptions
+    ): void;
+
+    shake(): void;
+
+    clear(): void;
+}
+
+export class GuessEvent extends Event {
+    public constructor(public guess: string) {
+        super("guess", { bubbles: true });
+    }
+}

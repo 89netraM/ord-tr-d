@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ord Tråd</title>
+  </head>
+  <body>
+    <canvas id="word-web"></canvas>
+    <!-- <div id="word-web"></div> -->
+    <nav class="overlay">
+      <h2>Ord Tråd</h2>
+    </nav>
+    <h1 id="goal">värd</h1>
+    <div id="input" class="overlay">
+      <input id="guess-textbox" type="text" tabindex="0" title="Nästa ord" placeholder="Nästa ord" writingsuggestions="false" data-ms-editor="false"/>
+      <label id="letters" for="guess-textbox">
+        <span class="guess-letter"></span>
+        <span class="guess-letter"></span>
+        <span class="guess-letter"></span>
+        <span class="guess-letter"></span>
+      </label>
+      <button id="guess-button" type="button" tabindex="0" title="Gissa">⏎</button>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,131 @@
+html {
+    background-color: #333333;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    margin: 0;
+    display: grid;
+    height: 100lvh;
+    grid-template:
+        "nav" auto
+        "goal" auto
+        "word-web" 1fr
+        "input" auto
+        "keyboard" env(keyboard-inset-height, 0px);
+}
+
+.overlay {
+    background-color: #0000007a;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+nav {
+    width: 100%;
+    text-align: center;
+    padding: 0.5em 0;
+    grid-area: nav;
+
+    h2 {
+        color: #ffffff;
+        margin: 0;
+    }
+}
+
+#goal {
+    grid-area: goal;
+    text-align: center;
+    font-size: 4rem;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    margin: 0.25em 0;
+    color: #ffd700;
+    -webkit-text-stroke: 0.04em #000000;
+    text-shadow: 0 0 0.5em #ffd700;
+    pointer-events: none;
+}
+
+#word-web {
+    width: 100%;
+    height: 100%;
+    grid-row-start: nav-start;
+    grid-row-end: keyboard-end;
+    grid-column: word-web;
+}
+
+#input {
+    grid-area: input;
+    width: 100%;
+    display: grid;
+    grid-template: "left guess right" / 1fr auto 1fr;
+    padding: 0.25em 0;
+    overflow-x: hidden;
+
+    &,
+    button {
+        font-size: 2rem;
+    }
+
+    #guess-textbox {
+        width: 0;
+        border: none;
+        outline: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    #letters {
+        grid-area: guess;
+        display: flex;
+        gap: 0.25em;
+        justify-content: center;
+
+        .guess-letter {
+            cursor: text;
+            transition: transform 0.1s;
+
+            &:empty::before {
+                content: "_";
+            }
+
+            &:not(.selected):hover {
+                transform: translateY(-0.1em);
+            }
+
+            &:has(~ *:hover):empty {
+                &:not(.selected) {
+                    transform: translateY(-0.1em);
+                }
+
+                &~*:not(.selected) {
+                    transform: unset;
+                }
+            }
+
+            &.selected {
+                transform: scale(1.1) translateY(-0.1em);
+            }
+        }
+    }
+
+    #guess-button {
+        grid-area: right;
+        justify-self: left;
+        cursor: pointer;
+        margin-left: 0.25em;
+    }
+
+    .guess-letter,
+    #guess-button {
+        width: 1.3ch;
+        height: 1.4em;
+        text-align: center;
+        background-color: #ffffff;
+        border: none;
+        border-radius: 0.25em;
+        padding: 0.1em;
+        color: #333333;
+        display: inline;
+        box-sizing: content-box;
+    }
+}
