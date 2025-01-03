@@ -16,9 +16,6 @@ export class WordValidator {
     }
 
     public validateGuess(currentWord: string, guessWord: string): boolean {
-        if (guessWord === this.goalWord) {
-            return true;
-        }
         if (guessWord.length !== currentWord.length) {
             return false;
         }
@@ -29,6 +26,9 @@ export class WordValidator {
         const anagram = this.#isAnagram(currentWord, guessWord);
         if (oneDiff === anagram) {
             return false;
+        }
+        if (guessWord === this.goalWord) {
+            return true;
         }
         return this.#allowList.has(guessWord);
     }
