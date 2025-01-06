@@ -37,6 +37,7 @@ canvasResizeObserver.observe(wordWeb);
         startMousePosition = { x: e.clientX | 0, y: e.clientY | 0 };
         lastMousePosition = { x: e.clientX * wordWeb.pixelScale, y: e.clientY * wordWeb.pixelScale };
         e.preventDefault();
+        cancelAnimation();
     });
     window.addEventListener("pointermove", e => {
         if (e.pointerType !== "mouse") {
@@ -51,6 +52,7 @@ canvasResizeObserver.observe(wordWeb);
             lastMousePosition = newMousePosition;
             window.requestAnimationFrame(renderScene);
             e.preventDefault();
+            cancelAnimation();
         }
     });
     window.addEventListener("pointerup", pointerUpHandler);
@@ -60,12 +62,14 @@ canvasResizeObserver.observe(wordWeb);
             return;
         }
         lastMousePosition = null;
+        cancelAnimation();
     }
     wordWeb.addEventListener("wheel", e => {
         if (e.deltaY != 0) {
             setZoom(zoom * (1 - e.deltaY / 1000), { x: e.clientX * wordWeb.pixelScale, y: e.clientY * wordWeb.pixelScale });
             window.requestAnimationFrame(renderScene);
             e.preventDefault();
+            cancelAnimation();
         }
     });
     wordWeb.addEventListener("click", e => {
@@ -89,6 +93,7 @@ canvasResizeObserver.observe(wordWeb);
         for (const touch of e.changedTouches) {
             lastTouchPositions.set(touch.identifier, { x: touch.clientX * wordWeb.pixelScale, y: touch.clientY * wordWeb.pixelScale });
         }
+        cancelAnimation();
     });
     wordWeb.addEventListener("touchmove", e => {
         let lastTouchCenter = calculateTouchCenter();
@@ -117,6 +122,7 @@ canvasResizeObserver.observe(wordWeb);
             }
             if (updated) {
                 window.requestAnimationFrame(renderScene);
+                cancelAnimation();
             }
         }
 
@@ -129,6 +135,7 @@ canvasResizeObserver.observe(wordWeb);
             lastTouchPositions.delete(touch.identifier);
         }
         window.requestAnimationFrame(renderScene);
+        cancelAnimation();
     }
 
     function calculateTouchCenter(): Vector | null {
@@ -155,6 +162,49 @@ canvasResizeObserver.observe(wordWeb);
     }
 }
 
+let animateTo: (target: Vector, duration: number) => void;
+let cancelAnimation: () => void;
+{
+    let animationFrameId: number | null = null;
+    let animationStart: number | null = null;
+    let animationDuration: number | null = null;
+    let animationStartOffset: Vector | null = null;
+    let animationTargetOffset: Vector | null = null;
+
+    animateTo = (target: Vector, duration: number): void => {
+        cancelAnimation();
+        animationStart = performance.now();
+        animationDuration = duration;
+        animationStartOffset = { x: offset.x, y: offset.y };
+        animationTargetOffset = target;
+        animationFrameId = window.requestAnimationFrame(animate);
+    };
+
+    function animate(time: DOMHighResTimeStamp): void {
+        if (animationStart == null || animationDuration == null || animationStartOffset == null || animationTargetOffset == null) {
+            return;
+        }
+        const progress = Math.min(1, (time - animationStart) / animationDuration);
+        offset = {
+            x: animationStartOffset.x + (animationTargetOffset.x - animationStartOffset.x) * progress,
+            y: animationStartOffset.y + (animationTargetOffset.y - animationStartOffset.y) * progress,
+        };
+        renderScene(time);
+        if (progress < 1) {
+            animationFrameId = window.requestAnimationFrame(animate);
+        } else {
+            animationFrameId = null;
+        }
+    }
+
+    cancelAnimation = (): void => {
+        if (animationFrameId != null) {
+            window.cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+    };
+}
+
 function setZoom(newZoom: number, around: Vector): void {
     newZoom = Math.max(0.1, Math.min(10, newZoom));
     const diff = newZoom - zoom;
@@ -168,14 +218,27 @@ function setZoom(newZoom: number, around: Vector): void {
 wordWeb.renderTree = (root: WordNode, currentNode: WordNode | null): void => {
     rootNode = root;
     if (currentNode != null) {
-        const currentNodePosition = getPositionOfNode(currentNode, zoom * wordWeb.pixelScale);
-        offset = {
-            x: wordWeb.width / 2 - (currentNodePosition.x - offset.x),
-            y: wordWeb.height / 2 - (currentNodePosition.y - offset.y),
-        };
         currentNodeId = currentNode.id;
     }
+    else {
+        window.requestAnimationFrame(renderScene);
+    }
+};
+wordWeb.moveToNode = (node: WordNode): void => {
+    const currentNodePosition = getPositionOfNode(node, zoom * wordWeb.pixelScale);
+    offset = {
+        x: wordWeb.width / 2 - (currentNodePosition.x - offset.x),
+        y: wordWeb.height / 2 - (currentNodePosition.y - offset.y),
+    };
     window.requestAnimationFrame(renderScene);
+};
+wordWeb.animateToNode = (node: WordNode): void => {
+    const currentNodePosition = getPositionOfNode(node, zoom * wordWeb.pixelScale);
+    const targetOffset = {
+        x: wordWeb.width / 2 - (currentNodePosition.x - offset.x),
+        y: wordWeb.height / 2 - (currentNodePosition.y - offset.y),
+    };
+    animateTo(targetOffset, 250);
 };
 
 function renderScene(_: DOMHighResTimeStamp): void {
@@ -265,6 +328,9 @@ export interface WordWeb extends HTMLCanvasElement {
     ): void;
 
     renderTree(root: WordNode, currentNode: WordNode | null): void;
+
+    moveToNode(node: WordNode): void;
+    animateToNode(node: WordNode): void;
 
     pixelScale: number;
 }

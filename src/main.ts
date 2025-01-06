@@ -17,6 +17,7 @@ input.addEventListener(
             current = current.makeNext(e.guess, e.guess == "värd");
             treeLayout(root);
             wordWeb.renderTree(root, current);
+            wordWeb.animateToNode(current);
             input.clear();
         }
         else {
@@ -30,12 +31,14 @@ wordWeb.addEventListener(
     e => {
         current = e.selectedNode;
         wordWeb.renderTree(root, e.selectedNode);
+        wordWeb.animateToNode(current);
         input.focus();
     }
 );
 
 treeLayout(root);
 wordWeb.renderTree(root, current);
+wordWeb.moveToNode(current);
 
 async function downloadAllWordsList(): Promise<Array<string>> {
     const response = await fetch("./all-words.json");
