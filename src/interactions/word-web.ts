@@ -1,37 +1,41 @@
 import { WordNode } from "../WordNode";
 
-const canvas = document.getElementById("word-web") as ScaledHTMLCanvasElement;
+export const wordWeb = document.getElementById("word-web") as WordWeb;
 {
-    const { width: initialWidth, height: initialHeight } = canvas.getBoundingClientRect();
-    canvas.width = initialWidth;
-    canvas.height = initialHeight;
-    canvas.pixelScale = 1.0;
+    const { width: initialWidth, height: initialHeight } = wordWeb.getBoundingClientRect();
+    wordWeb.width = initialWidth;
+    wordWeb.height = initialHeight;
+    wordWeb.pixelScale = 1.0;
 }
-const ctx = canvas.getContext("2d")!;
+const ctx = wordWeb.getContext("2d")!;
 
 let rootNode: WordNode | null = null;
 let zoom = 1;
 let offset: Vector = { x: 0, y: 0 };
+let currentNodeId: number | null = null;
+const nodePositions = new Array<[Vector, WordNode]>();
 
 const canvasResizeObserver = new ResizeObserver(entries => {
     const { inlineSize: width, blockSize: height } = entries[0].devicePixelContentBoxSize[0];
     const logicalHeight = entries[0].contentBoxSize[0].blockSize;
     window.requestAnimationFrame(time => {
-        canvas.width = width;
-        canvas.height = height;
-        canvas.pixelScale = height / logicalHeight;
+        wordWeb.width = width;
+        wordWeb.height = height;
+        wordWeb.pixelScale = height / logicalHeight;
         renderScene(time);
     });
 });
-canvasResizeObserver.observe(canvas);
+canvasResizeObserver.observe(wordWeb);
 
 {
+    let startMousePosition: Vector | null = null;
     let lastMousePosition: Vector | null = null;
-    canvas.addEventListener("pointerdown", e => {
+    wordWeb.addEventListener("pointerdown", e => {
         if (e.pointerType !== "mouse") {
             return;
         }
-        lastMousePosition = { x: e.clientX * canvas.pixelScale, y: e.clientY * canvas.pixelScale };
+        startMousePosition = { x: e.clientX | 0, y: e.clientY | 0 };
+        lastMousePosition = { x: e.clientX * wordWeb.pixelScale, y: e.clientY * wordWeb.pixelScale };
         e.preventDefault();
     });
     window.addEventListener("pointermove", e => {
@@ -39,7 +43,7 @@ canvasResizeObserver.observe(canvas);
             return;
         }
         if (lastMousePosition != null) {
-            const newMousePosition = { x: e.clientX * canvas.pixelScale, y: e.clientY * canvas.pixelScale };
+            const newMousePosition = { x: e.clientX * wordWeb.pixelScale, y: e.clientY * wordWeb.pixelScale };
             offset = {
                 x: offset.x + newMousePosition.x - lastMousePosition.x,
                 y: offset.y + newMousePosition.y - lastMousePosition.y,
@@ -57,28 +61,41 @@ canvasResizeObserver.observe(canvas);
         }
         lastMousePosition = null;
     }
-    canvas.addEventListener("wheel", e => {
+    wordWeb.addEventListener("wheel", e => {
         if (e.deltaY != 0) {
-            setZoom(zoom * (1 - e.deltaY / 1000), { x: e.clientX * canvas.pixelScale, y: e.clientY * canvas.pixelScale });
+            setZoom(zoom * (1 - e.deltaY / 1000), { x: e.clientX * wordWeb.pixelScale, y: e.clientY * wordWeb.pixelScale });
             window.requestAnimationFrame(renderScene);
             e.preventDefault();
+        }
+    });
+    wordWeb.addEventListener("click", e => {
+        const mousePosition = { x: e.clientX, y: e.clientY };
+        if (startMousePosition?.x == mousePosition.x && startMousePosition?.y == mousePosition.y || (e as any).pointerType !== "mouse") {
+            const scaledMousePosition = { x: mousePosition.x * wordWeb.pixelScale, y: mousePosition.y * wordWeb.pixelScale };
+            const distance = wordWeb.pixelScale * zoom * 50;
+            for (const [pos, node] of nodePositions) {
+                if (Math.hypot(scaledMousePosition.x - pos.x, scaledMousePosition.y - pos.y) < distance) {
+                    wordWeb.dispatchEvent(new SelectEvent(node));
+                    break;
+                }
+            }
         }
     });
 }
 
 {
     const lastTouchPositions = new Map<number, Vector>();
-    canvas.addEventListener("touchstart", e => {
+    wordWeb.addEventListener("touchstart", e => {
         for (const touch of e.changedTouches) {
-            lastTouchPositions.set(touch.identifier, { x: touch.clientX * canvas.pixelScale, y: touch.clientY * canvas.pixelScale });
+            lastTouchPositions.set(touch.identifier, { x: touch.clientX * wordWeb.pixelScale, y: touch.clientY * wordWeb.pixelScale });
         }
     });
-    canvas.addEventListener("touchmove", e => {
+    wordWeb.addEventListener("touchmove", e => {
         let lastTouchCenter = calculateTouchCenter();
         let lastTouchDistance = calculateTouchDistance();
 
         for (const touch of e.changedTouches) {
-            const newTouchPosition = { x: touch.clientX * canvas.pixelScale, y: touch.clientY * canvas.pixelScale };
+            const newTouchPosition = { x: touch.clientX * wordWeb.pixelScale, y: touch.clientY * wordWeb.pixelScale };
             lastTouchPositions.set(touch.identifier, newTouchPosition);
         }
         let newTouchCenter = calculateTouchCenter();
@@ -105,8 +122,8 @@ canvasResizeObserver.observe(canvas);
 
         e.preventDefault();
     });
-    canvas.addEventListener("touchend", touchEndHandler);
-    canvas.addEventListener("touchcancel", touchEndHandler);
+    wordWeb.addEventListener("touchend", touchEndHandler);
+    wordWeb.addEventListener("touchcancel", touchEndHandler);
     function touchEndHandler(e: TouchEvent) {
         for (const touch of e.changedTouches) {
             lastTouchPositions.delete(touch.identifier);
@@ -148,24 +165,26 @@ function setZoom(newZoom: number, around: Vector): void {
     zoom = newZoom;
 }
 
-export function renderTree(root: WordNode, currentNode: WordNode | null): void {
+wordWeb.renderTree = (root: WordNode, currentNode: WordNode | null): void => {
     rootNode = root;
     if (currentNode != null) {
-        const currentNodePosition = getPositionOfNode(currentNode, zoom * canvas.pixelScale);
+        const currentNodePosition = getPositionOfNode(currentNode, zoom * wordWeb.pixelScale);
         offset = {
-            x: canvas.width / 2 - currentNodePosition.x,
-            y: canvas.height / 2 - currentNodePosition.y,
+            x: wordWeb.width / 2 - (currentNodePosition.x - offset.x),
+            y: wordWeb.height / 2 - (currentNodePosition.y - offset.y),
         };
+        currentNodeId = currentNode.id;
     }
     window.requestAnimationFrame(renderScene);
-}
+};
 
 function renderScene(_: DOMHighResTimeStamp): void {
-    const { width, height, pixelScale } = canvas;
+    const { width, height, pixelScale } = wordWeb;
     const scale = pixelScale * zoom;
 
     ctx.clearRect(0, 0, width, height);
 
+    nodePositions.splice(0, nodePositions.length);
     if (rootNode == null) {
         return;
     }
@@ -177,7 +196,11 @@ function renderScene(_: DOMHighResTimeStamp): void {
             renderEdge(pos, getPositionOfNode(child, scale));
             renderNode(child);
         }
-        renderText(pos.x, pos.y, node.word);
+        if (currentNodeId == node.id) {
+            renderUnderline(pos, node.word, getNodeColor(node));
+        }
+        renderText(pos, node.word, getNodeColor(node));
+        nodePositions.push([pos, node]);
     }
 
     function renderEdge(from: Vector, to: Vector): void {
@@ -189,15 +212,41 @@ function renderScene(_: DOMHighResTimeStamp): void {
         ctx.stroke();
     }
 
-    function renderText(x: number, y: number, text: string): void {
+    function getNodeColor(node: WordNode): string {
+        if (node.isEnd) {
+            return "#ffd700";
+        } else {
+            return "#ffffff";
+        }
+    }
+
+    function renderText(pos: Vector, text: string, color: string): void {
+        nodeTextStyling(color);
+        ctx.fillText(text, pos.x, pos.y);
+        ctx.strokeText(text, pos.x, pos.y);
+    }
+
+    function renderUnderline(pos: Vector, text: string, color: string): void {
+        nodeTextStyling(color);
+        ctx.lineWidth = 5 * scale;
+        const measurements = ctx.measureText(text);
+        ctx.beginPath();
+        ctx.moveTo(pos.x - measurements.width / 2, pos.y + measurements.actualBoundingBoxAscent / 2 + 4 * scale);
+        ctx.lineTo(pos.x + measurements.width / 2, pos.y + measurements.actualBoundingBoxAscent / 2 + 4 * scale);
+        ctx.stroke();
+        ctx.lineWidth = 1 * scale;
+        ctx.strokeStyle = color;
+        ctx.stroke();
+    }
+
+    function nodeTextStyling(color: string): void {
         ctx.font = `${3 * scale}rem "Comic Sans MS", "Comic Sans", cursive`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.strokeStyle = "#000000";
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = color;
         ctx.lineWidth = 2 * scale;
-        ctx.fillText(text, x, y);
-        ctx.strokeText(text, x, y);
+        ctx.lineCap = "round";
     }
 }
 
@@ -208,8 +257,22 @@ function getPositionOfNode(node: WordNode, scale: number): Vector {
     }
 }
 
-interface ScaledHTMLCanvasElement extends HTMLCanvasElement {
+export interface WordWeb extends HTMLCanvasElement {
+    addEventListener<K extends keyof GlobalEventHandlersEventMap | "nodeselected">(
+        type: K,
+        listener: (this: WordWeb, e: K extends keyof GlobalEventHandlersEventMap ? GlobalEventHandlersEventMap[K] : SelectEvent) => any,
+        options?: boolean | AddEventListenerOptions
+    ): void;
+
+    renderTree(root: WordNode, currentNode: WordNode | null): void;
+
     pixelScale: number;
+}
+
+export class SelectEvent extends Event {
+    public constructor(public selectedNode: WordNode) {
+        super("nodeselected", { bubbles: true });
+    }
 }
 
 interface Vector {

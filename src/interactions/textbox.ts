@@ -52,15 +52,17 @@ guessLetters.forEach(
 );
 
 function updateLetterSelection() {
+    const selectionStart = guessTextbox.selectionStart ?? 0;
     guessLetters.forEach(
         (letter, i) => {
-            if (i === guessTextbox.selectionStart) {
+            if (i === selectionStart) {
                 letter.classList.add("selected");
             } else {
                 letter.classList.remove("selected");
             }
         }
     );
+    guessTextbox.setSelectionRange(selectionStart, selectionStart + 1);
 }
 
 export const input = document.getElementById("input") as GuessInput;
@@ -79,6 +81,7 @@ input.shake = () => {
     guessLetters.forEach(guessLetter => guessLetter.animate(shakeAnimation, shakeTiming));
     guessButton.animate(shakeAnimation, shakeTiming);
 };
+input.focus = () => guessTextbox.focus();
 
 input.clear = () => {
     guessTextbox.value = "";
@@ -96,6 +99,8 @@ export interface GuessInput extends HTMLDivElement {
     shake(): void;
 
     clear(): void;
+
+    focus(): void;
 }
 
 export class GuessEvent extends Event {
