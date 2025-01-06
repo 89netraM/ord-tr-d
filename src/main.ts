@@ -6,7 +6,7 @@ import { treeLayout } from "./tree-layout.ts";
 import { WordValidator } from "./WordValidator.ts";
 
 const root = new WordNode("tråd");
-let current = root;
+let current = root.makeNext("träd");
 const allowList = new Set<string>(await downloadAllWordsList());
 const validator = new WordValidator(allowList, "värd");
 
