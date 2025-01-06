@@ -1,3 +1,4 @@
+import { XORShift } from "random-seedable";
 import { WordValidator } from "./WordValidator";
 
 export function findPathBetween(wordList: ReadonlySet<string>, fromWord: string, toWord: string): Array<string> {
@@ -12,7 +13,7 @@ export function findPathBetween(wordList: ReadonlySet<string>, fromWord: string,
     return buildPath(visitedWords, fromWord, toWord);
 }
 
-export function findPathToNextGoal(wordList: ReadonlySet<string>, forbiddenWords: ReadonlyArray<string>, fromWord: string): Array<string> | null {
+export function findPathToNextGoal(wordList: ReadonlySet<string>, forbiddenWords: ReadonlyArray<string>, fromWord: string, random: XORShift): Array<string> | null {
     const validator = new WordValidator(wordList, null);
     const visitedWords = new Map(forbiddenWords.map(x => [x, null])).set(fromWord, null);
     const queue: Array<[string, number]> = [[fromWord, 0]];
@@ -20,7 +21,7 @@ export function findPathToNextGoal(wordList: ReadonlySet<string>, forbiddenWords
         visitedWords,
         queue,
         (_: string, steps: number) => steps === 4,
-        (word: string) => shuffle([...validator.getAllPossibleNextWords(word)]));
+        (word: string) => random.shuffle([...validator.getAllPossibleNextWords(word)]));
     if (toWord == null) {
         return null;
     }
@@ -57,12 +58,4 @@ function buildPath(visitedWords: ReadonlyMap<string, string | null>, fromWord: s
         }
     }
     return path;
-}
-
-function shuffle<T>(array: Array<T>): Array<T> {
-    for (let i = array.length - 1; i >= 0; i--) {
-        const j = Math.floor(Math.random() * i);
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
 }
