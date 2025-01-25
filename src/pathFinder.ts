@@ -32,7 +32,7 @@ function findPath(
     visitedWords: Map<string, string | null>,
     queue: Array<[string, number]>,
     isGoal: (currentWord: string, steps: number) => boolean,
-    getNexts: (currentWord: string) => Iterable<string, any, any>): string | null {
+    getNexts: (currentWord: string) => Iterable<string>): string | null {
     while (queue.length > 0) {
         const [currentWord, steps] = queue.shift()!;
         if (isGoal(currentWord, steps)) {
