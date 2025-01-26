@@ -8,6 +8,11 @@ import { WordValidator } from "./WordValidator.ts";
 import { findPathToNextGoal } from "./pathFinder.ts";
 import { downloadWordsList as downloadWordList } from "./wordList.ts";
 
+if ("virtualKeyboard" in navigator) {
+    (navigator.virtualKeyboard as any).overlaysContent = true;
+    document.getElementById("viewport")?.setAttribute("content", "width=device-width, initial-scale=1.0");
+}
+
 let { rootNode: root, currentNode: current, goal, dayId } = load() ?? await generateDailyProblem();
 if (dayId !== currentDayId()) {
     ({ rootNode: root, currentNode: current, goal, dayId } = await generateDailyProblem());
