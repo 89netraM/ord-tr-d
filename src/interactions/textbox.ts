@@ -77,9 +77,11 @@ const shakeTiming: KeyframeAnimationOptions = {
     direction: "alternate",
     easing: "ease-in-out",
 };
+const vibrationPattern = [37.5, 37.5, 37.5, 37.5, 37.5, 37.5, 37.5, 37.5];
 input.shake = () => {
     guessLetters.forEach(guessLetter => guessLetter.animate(shakeAnimation, shakeTiming));
     guessButton.animate(shakeAnimation, shakeTiming);
+    navigator.vibrate?.(vibrationPattern);
 };
 input.focus = () => guessTextbox.focus();
 
