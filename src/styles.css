@@ -67,11 +67,25 @@ nav {
     }
 
     #guess-textbox {
-        width: 0;
+        position: absolute;
+        top: 0;
+        z-index: -1;
+        background: none;
         border: none;
         outline: none;
-        padding: 0;
-        margin: 0;
+        font: none;
+        color: transparent;
+        pointer-events: none;
+
+        &::placeholder {
+            color: transparent;
+        }
+
+        &::selection {
+            display: none;
+            background: none;
+            color: transparent;
+        }
     }
 
     #letters {
