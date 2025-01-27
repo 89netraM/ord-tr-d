@@ -102,17 +102,19 @@ nav {
                 content: "_";
             }
 
-            &:not(.selected):hover {
-                transform: translateY(-0.1em);
-            }
-
-            &:has(~ *:hover):empty {
-                &:not(.selected) {
+            @media (pointer: fine) {
+                &:not(.selected):hover {
                     transform: translateY(-0.1em);
                 }
 
-                &~*:not(.selected) {
-                    transform: unset;
+                &:has(~ *:hover):empty {
+                    &:not(.selected) {
+                        transform: translateY(-0.1em);
+                    }
+
+                    &~*:not(.selected) {
+                        transform: unset;
+                    }
                 }
             }
 

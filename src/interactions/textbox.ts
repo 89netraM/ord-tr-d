@@ -14,6 +14,7 @@ guessTextbox.addEventListener(
         );
     }
 );
+guessTextbox.addEventListener("focus", updateLetterSelection);
 guessTextbox.addEventListener("selectionchange", updateLetterSelection);
 guessTextbox.addEventListener(
     "blur",
