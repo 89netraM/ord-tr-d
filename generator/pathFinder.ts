@@ -1,26 +1,14 @@
 import { XORShift } from "random-seedable";
-import { WordValidator } from "./WordValidator";
+import { WordValidator } from "../shared/WordValidator";
 
-export function findPathBetween(wordList: ReadonlySet<string>, fromWord: string, toWord: string): Array<string> {
+export function findPathToNextGoal(wordList: ReadonlySet<string>, pathLength: number, forbiddenWords: ReadonlySet<string>, fromWord: string, random: XORShift): Array<string> | null {
     const validator = new WordValidator(wordList, null);
-    const visitedWords = new Map();
-    const queue: Array<[string, number]> = [[fromWord, 0]];
-    findPath(
-        visitedWords,
-        queue,
-        (word: string, _: number) => word === toWord,
-        (word: string) => validator.getAllPossibleNextWords(word));
-    return buildPath(visitedWords, fromWord, toWord);
-}
-
-export function findPathToNextGoal(wordList: ReadonlySet<string>, forbiddenWords: ReadonlyArray<string>, fromWord: string, random: XORShift): Array<string> | null {
-    const validator = new WordValidator(wordList, null);
-    const visitedWords = new Map(forbiddenWords.map(x => [x, null])).set(fromWord, null);
+    const visitedWords = new Map([[fromWord, null]]);
     const queue: Array<[string, number]> = [[fromWord, 0]];
     const toWord = findPath(
         visitedWords,
         queue,
-        (_: string, steps: number) => steps === 4,
+        (word: string, steps: number) => steps === pathLength && !forbiddenWords.has(word),
         (word: string) => random.shuffle([...validator.getAllPossibleNextWords(word)]));
     if (toWord == null) {
         return null;
@@ -32,7 +20,7 @@ function findPath(
     visitedWords: Map<string, string | null>,
     queue: Array<[string, number]>,
     isGoal: (currentWord: string, steps: number) => boolean,
-    getNexts: (currentWord: string) => Iterable<string, any, any>): string | null {
+    getNexts: (currentWord: string) => Iterable<string>): string | null {
     while (queue.length > 0) {
         const [currentWord, steps] = queue.shift()!;
         if (isGoal(currentWord, steps)) {

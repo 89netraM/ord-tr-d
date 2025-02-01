@@ -1,12 +1,10 @@
-import { XORShift } from "random-seedable";
 import "./styles.css";
 import { input } from "./interactions/textbox.ts";
 import { wordWeb } from "./interactions/word-web.ts";
 import { loadWordNode, WordNode } from "./WordNode.ts";
 import { treeLayout } from "./tree-layout.ts";
-import { WordValidator } from "./WordValidator.ts";
-import { findPathToNextGoal } from "./pathFinder.ts";
-import { downloadWordsList as downloadWordList } from "./wordList.ts";
+import { WordValidator } from "../shared/WordValidator.ts";
+import { downloadWordList, downloadDailyWords } from "./wordList.ts";
 
 window.addEventListener(
     "load",
@@ -16,10 +14,11 @@ window.addEventListener(
             document.getElementById("viewport")?.setAttribute("content", "width=device-width, initial-scale=1.0");
         }
 
-        let { rootNode: root, currentNode: current, goal, dayId } = load() ?? await generateDailyProblem();
-        if (dayId !== currentDayId()) {
-            ({ rootNode: root, currentNode: current, goal, dayId } = await generateDailyProblem());
+        let state = load() ?? await fetchDailyProblem(null);
+        if (state?.dayId !== currentDayId()) {
+            state = await fetchDailyProblem(state);
         }
+        let { rootNode, currentNode, goal, dayId } = state;
 
         document.getElementById("goal")!.textContent = goal;
 
@@ -29,13 +28,13 @@ window.addEventListener(
         input.addEventListener(
             "guess",
             e => {
-                if (validator.validateGuess(current.word, e.guess)) {
-                    current = current.makeNext(e.guess, e.guess == goal);
-                    treeLayout(root);
-                    wordWeb.renderTree(root, current);
-                    wordWeb.animateToNode(current);
+                if (validator.validateGuess(currentNode.word, e.guess)) {
+                    currentNode = currentNode.makeNext(e.guess, e.guess == goal);
+                    treeLayout(rootNode);
+                    wordWeb.renderTree(rootNode, currentNode);
+                    wordWeb.animateToNode(currentNode);
                     input.clear();
-                    save(root, current, goal, dayId);
+                    save({ rootNode, currentNode, goal, dayId });
                 }
                 else {
                     input.shake();
@@ -46,55 +45,70 @@ window.addEventListener(
         wordWeb.addEventListener(
             "nodeselected",
             e => {
-                current = e.selectedNode;
-                wordWeb.renderTree(root, e.selectedNode);
-                wordWeb.animateToNode(current);
+                currentNode = e.selectedNode;
+                wordWeb.renderTree(rootNode, e.selectedNode);
+                wordWeb.animateToNode(currentNode);
                 input.focus();
-                save(root, current, goal, dayId);
+                save({ rootNode, currentNode, goal, dayId });
             }
         );
 
-        treeLayout(root);
-        wordWeb.renderTree(root, current);
-        wordWeb.moveToNode(current);
+        treeLayout(rootNode);
+        wordWeb.renderTree(rootNode, currentNode);
+        wordWeb.moveToNode(currentNode);
 
-        function load(): { rootNode: WordNode, currentNode: WordNode, goal: string, dayId: string } | null {
+        function load(): State | null {
             const saveState = localStorage.getItem("save-state");
             if (saveState == null) {
                 return null;
             }
             const { wordNodeDb, currentId, goalWord, dayId } = JSON.parse(saveState);
             const rootNode = loadWordNode(wordNodeDb);
-            const currentNode = rootNode.find(currentId)!;
+            const currentNode = rootNode.find(n => n.id === currentId)!;
             return { rootNode, currentNode, goal: goalWord, dayId };
         }
 
-        async function generateDailyProblem(): Promise<{ rootNode: WordNode, currentNode: WordNode, goal: string, dayId: string }> {
-            const commonWords = await downloadWordList("common-words.json");
-
+        async function fetchDailyProblem(state: State | null): Promise<State> {
             const dayId = currentDayId();
-            const random = new XORShift(new Date(dayId).getTime());
+            const dailyWords = await downloadDailyWords();
+            const from = dailyWords[dayId].from;
+            const goal = dailyWords[dayId].to;
 
-            const start = random.choice(commonWords);
-            const rootNode = new WordNode(start);
-            const pathToGoal = findPathToNextGoal(new Set(commonWords), [], start, random)!;
-            const goal = pathToGoal[pathToGoal.length - 1];
-            save(rootNode, rootNode, goal, dayId);
+            if (state?.goal === from) {
+                const previousGoal = state.rootNode.find(n => n.word === from && n.isEnd);
+                if (previousGoal != null) {
+                    save({ rootNode: state.rootNode, currentNode: previousGoal, goal, dayId });
+                    return { rootNode: state.rootNode, currentNode: previousGoal, goal, dayId };
+                }
+            }
+
+            const rootNode = new WordNode(from);
+
+            save({ rootNode, currentNode: rootNode, goal, dayId });
             return { rootNode, currentNode: rootNode, goal, dayId };
         }
 
-        function save(root: WordNode, current: WordNode, goal: string, dayId: string) {
+        function save(state: State) {
             const saveState = JSON.stringify({
-                wordNodeDb: Array.from(root.save()),
-                currentId: current.id,
-                goalWord: goal,
-                dayId,
+                wordNodeDb: Array.from(state.rootNode.save()),
+                currentId: state.currentNode.id,
+                goalWord: state.goal,
+                dayId: state.dayId,
             });
             localStorage.setItem("save-state", saveState);
         }
 
-        function currentDayId(): string {
-            return new Date().toISOString().substring(0, 10);
+        function currentDayId(): number {
+            const startDay = new Date(2025, 1, 1).getTime();
+            const now = Date.now();
+            return Math.floor((now - startDay) / 86400000);
         }
     }
 );
+
+interface State {
+    rootNode: WordNode;
+    currentNode: WordNode;
+    goal: string;
+    dayId: number;
+}
