@@ -29,12 +29,12 @@ export class WordNode {
         return next;
     }
 
-    public find(id: number): WordNode | null {
-        if (this.id === id) {
+    public find(predicate: (node: WordNode) => boolean): WordNode | null {
+        if (predicate(this)) {
             return this;
         }
         for (const child of this.children) {
-            const found = child.find(id);
+            const found = child.find(predicate);
             if (found != null) {
                 return found;
             }

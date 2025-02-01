@@ -1,14 +1,11 @@
-const wordLists = new Map<string, Promise<Array<string>>>();
+export async function downloadWordList(listUrl: string): Promise<Array<string>> {
+    const response = await fetch(listUrl);
+    const words = await response.json();
+    return words;
+}
 
-export function downloadWordsList(listUrl: string): Promise<Array<string>> {
-    if (wordLists.has(listUrl)) {
-        return wordLists.get(listUrl)!;
-    }
-    const promise = (async () => {
-        const response = await fetch(listUrl);
-        const words = await response.json();
-        return words;
-    })();
-    wordLists.set(listUrl, promise);
-    return promise;
+export async function downloadDailyWords(): Promise<{ [day: number]: { from: string, to: string } }> {
+    const response = await fetch("daily-words.json");
+    const dailyWords = await response.json();
+    return dailyWords;
 }

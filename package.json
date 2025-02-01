@@ -2,17 +2,18 @@
   "name": "ord-tråd",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generator": "ts-node --project ./tsconfig.generator.json ./generator/index.ts"
   },
   "devDependencies": {
-    "@types/node": "^22.10.5",
+    "@types/node": "^22.13.0",
+    "@vitejs/plugin-basic-ssl": "^1.2.0",
     "random-seedable": "^1.0.8",
     "ts-node": "^10.9.2",
-    "typescript": "~5.6.2",
-    "vite": "^6.0.5"
+    "typescript": "^5.7.3",
+    "vite": "6.0.11"
   }
 }
