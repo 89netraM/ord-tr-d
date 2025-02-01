@@ -82,6 +82,13 @@ window.addEventListener(
                 }
             }
 
+            if (state != null) {
+                const lastNode = (state.rootNode.findDeepest(n => n.isEnd) ?? state.rootNode).findDeepest(_ => true)!;
+                const currentNode = lastNode.addChild(from, false, true);
+                save({ rootNode: state.rootNode, currentNode, goal, dayId });
+                return { rootNode: state.rootNode, currentNode, goal, dayId };
+            }
+
             const rootNode = new WordNode(from);
 
             save({ rootNode, currentNode: rootNode, goal, dayId });

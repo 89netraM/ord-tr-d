@@ -256,7 +256,9 @@ function renderScene(_: DOMHighResTimeStamp): void {
     function renderNode(node: WordNode): void {
         const pos = getPositionOfNode(node, scale);
         for (const child of node.children) {
-            renderEdge(pos, getPositionOfNode(child, scale));
+            if (!child.isDisjointChild) {
+                renderEdge(pos, getPositionOfNode(child, scale));
+            }
             renderNode(child);
         }
         if (currentNodeId == node.id) {
