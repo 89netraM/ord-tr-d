@@ -1,7 +1,19 @@
-import basicSSL from "@vitejs/plugin-basic-ssl";
+import mkcert from "vite-plugin-mkcert";
 
 export default {
+    server: {
+        https: true,
+    },
     plugins: [
-        basicSSL(),
-    ]
+        mkcert(),
+    ],
+    build: {
+        rollupOptions: {
+            output: {
+                entryFileNames: "[name].js",
+                chunkFileNames: "[name].js",
+                assetFileNames: "[name].[ext]",
+            },
+        },
+    },
 }

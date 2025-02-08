@@ -14,6 +14,10 @@ window.addEventListener(
             document.getElementById("viewport")?.setAttribute("content", "width=device-width, initial-scale=1.0");
         }
 
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+
         let state = load() ?? await fetchDailyProblem(null);
         if (state?.dayId !== currentDayId()) {
             state = await fetchDailyProblem(state);
