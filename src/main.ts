@@ -75,6 +75,10 @@ window.addEventListener(
             }
         );
 
+        document.getElementById("help")?.addEventListener("click", () => {
+            howToPlay.showModal();
+        });
+
         treeLayout(rootNode);
         wordWeb.renderTree(rootNode, currentNode);
         wordWeb.moveToNode(currentNode);
