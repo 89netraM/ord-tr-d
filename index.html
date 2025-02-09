@@ -14,7 +14,7 @@
     </nav>
     <h1 id="goal"></h1>
     <div id="input" class="overlay">
-      <input id="guess-textbox" type="text" tabindex="0" title="Nästa ord" placeholder="Nästa ord" writingsuggestions="false" autocomplete="off" spellcheck="false" data-ms-editor="false"/>
+      <input id="guess-textbox" type="text" tabindex="0" title="Nästa ord" placeholder="Nästa ord" writingsuggestions="false" autocomplete="off" spellcheck="false" data-ms-editor="false" />
       <label id="letters" for="guess-textbox">
         <span class="guess-letter"></span>
         <span class="guess-letter"></span>
@@ -23,6 +23,26 @@
       </label>
       <button id="guess-button" type="button" tabindex="0" title="Gissa">⏎</button>
     </div>
+    <dialog id="how-to-play">
+      <h2>Hur man spelar</h2>
+      <p>I det här spelet ska du, genom flera drag, flytta dig från <u>startordet</u> till <span class="goal">målordet</span>.</p>
+      <p>Det finns två sorters drag, <i>byt</i> och <i>blanda</i>.</p>
+      <ol>
+        <li>
+          <i>Byt</i> ur en, och endast en, bokstav i ordet mot en annan. Alla andra bokstäver ska stå kvar där dom är.
+          <br />
+          Exipel: "tråd" kan genom ett byte bli "<i>h</i>ård"
+        </li>
+        <li>
+          <i>Blanda</i> om bokstäverna till ett nytt ord. Alla bokstäver måste förekomma lika många gånger som i ursprungsordet.
+          <br />
+          Exempel: "tråd" kan genom att blandas bli "rådt".
+        </li>
+      </ol>
+      <p>Kommer du till en "återvändsgränd", eller av någon annan anledning vill gå tillbaka till ett tidigare ord, kan du när som helst trycka på vilket ord som helst för att utgå från det.</p>
+      <p>Det <u>understrukena</u> ordet är alltid det aktiva, vilket det nästa skrivena ordet utgår från.</p>
+      <button class="close-button">Spela!</button>
+    </dialog>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

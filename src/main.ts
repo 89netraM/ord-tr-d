@@ -1,6 +1,7 @@
 import "./styles.css";
 import { input } from "./interactions/textbox.ts";
 import { wordWeb } from "./interactions/word-web.ts";
+import { howToPlay } from "./interactions/how-to-play.ts";
 import { loadWordNode, WordNode } from "./WordNode.ts";
 import { treeLayout } from "./tree-layout.ts";
 import { WordValidator } from "../shared/WordValidator.ts";
@@ -18,7 +19,11 @@ window.addEventListener(
             navigator.serviceWorker.register("service-worker.js");
         }
 
-        let state = load() ?? await fetchDailyProblem(null);
+        let state = load();
+        if (state == null) {
+            howToPlay.showModal();
+            state = await fetchDailyProblem(null);
+        }
         if (state?.dayId !== currentDayId()) {
             state = await fetchDailyProblem(state);
         }
@@ -95,7 +100,6 @@ window.addEventListener(
 
             const rootNode = new WordNode(from);
 
-            save({ rootNode, currentNode: rootNode, goal, dayId });
             return { rootNode, currentNode: rootNode, goal, dayId };
         }
 
