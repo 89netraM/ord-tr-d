@@ -2,9 +2,10 @@ import "./styles.css";
 import { input } from "./interactions/textbox.ts";
 import { wordWeb } from "./interactions/word-web.ts";
 import { howToPlay } from "./interactions/how-to-play.ts";
+import { toast } from "./interactions/toast.ts";
 import { loadWordNode, WordNode } from "./WordNode.ts";
 import { treeLayout } from "./tree-layout.ts";
-import { WordValidator } from "../shared/WordValidator.ts";
+import { ValidationResult, WordValidator } from "../shared/WordValidator.ts";
 import { downloadWordList, downloadDailyWords } from "./wordList.ts";
 
 window.addEventListener(
@@ -37,7 +38,8 @@ window.addEventListener(
         input.addEventListener(
             "guess",
             e => {
-                if (validator.validateGuess(currentNode.word, e.guess)) {
+                const validationResult = validator.validateGuess(currentNode.word, e.guess);
+                if (validationResult === ValidationResult.Success) {
                     currentNode = currentNode.makeNext(e.guess, e.guess == goal);
                     treeLayout(rootNode);
                     wordWeb.renderTree(rootNode, currentNode);
@@ -46,6 +48,17 @@ window.addEventListener(
                     save({ rootNode, currentNode, goal, dayId });
                 }
                 else {
+                    switch (validationResult) {
+                        case ValidationResult.IllegalMove:
+                            toast.show("Ogiltigt drag");
+                            break;
+                        case ValidationResult.UnknownWord:
+                            toast.show("Okänt ord");
+                            break;
+                        default:
+                            toast.show(ValidationResult[validationResult]);
+                            break;
+                    }
                     input.shake();
                 }
             }

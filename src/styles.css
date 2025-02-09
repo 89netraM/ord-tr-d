@@ -53,6 +53,19 @@ nav {
     grid-column: word-web;
 }
 
+#toast {
+    display: none;
+
+    grid-area: word-web;
+    justify-self: center;
+    align-self: flex-end;
+
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-block-end: 1rem;
+    color: #ffffff;
+}
+
 #input {
     grid-area: input;
     width: 100%;

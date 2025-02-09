@@ -9,28 +9,31 @@ export class WordValidator {
 
     public *getAllPossibleNextWords(currentWord: string): Generator<string, void, void> {
         for (const word of this.#allowList) {
-            if (this.validateGuess(currentWord, word)) {
+            if (this.validateGuess(currentWord, word) === ValidationResult.Success) {
                 yield word;
             }
         }
     }
 
-    public validateGuess(currentWord: string, guessWord: string): boolean {
+    public validateGuess(currentWord: string, guessWord: string): ValidationResult {
         if (guessWord.length !== currentWord.length) {
-            return false;
+            return ValidationResult.IllegalMove;
         }
         if (guessWord === currentWord) {
-            return false;
+            return ValidationResult.IllegalMove;
         }
         const oneDiff = this.#hasOneLetterDifference(currentWord, guessWord);
         const anagram = this.#isAnagram(currentWord, guessWord);
         if (oneDiff === anagram) {
-            return false;
+            return ValidationResult.IllegalMove;
         }
         if (guessWord === this.goalWord) {
-            return true;
+            return ValidationResult.IllegalMove;
         }
-        return this.#allowList.has(guessWord);
+        if (!this.#allowList.has(guessWord)){
+            return ValidationResult.UnknownWord;
+        }
+        return ValidationResult.Success;
     }
 
     #hasOneLetterDifference(word1: string, word2: string): boolean {
@@ -46,4 +49,10 @@ export class WordValidator {
     #isAnagram(word1: string, word2: string): boolean {
         return [...word1].sort().join("") === [...word2].sort().join("");
     }
+}
+
+export enum ValidationResult {
+    Success,
+    UnknownWord,
+    IllegalMove,
 }
