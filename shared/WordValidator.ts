@@ -28,7 +28,7 @@ export class WordValidator {
             return ValidationResult.IllegalMove;
         }
         if (guessWord === this.goalWord) {
-            return ValidationResult.IllegalMove;
+            return ValidationResult.Success;
         }
         if (!this.#allowList.has(guessWord)){
             return ValidationResult.UnknownWord;
