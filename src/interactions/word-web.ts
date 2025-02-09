@@ -296,8 +296,8 @@ function renderScene(_: DOMHighResTimeStamp): void {
         ctx.lineWidth = 5 * scale;
         const measurements = ctx.measureText(text);
         ctx.beginPath();
-        ctx.moveTo(pos.x - measurements.width / 2, pos.y + measurements.actualBoundingBoxAscent / 2 + 4 * scale);
-        ctx.lineTo(pos.x + measurements.width / 2, pos.y + measurements.actualBoundingBoxAscent / 2 + 4 * scale);
+        ctx.moveTo(pos.x - measurements.width / 2, pos.y + measurements.fontBoundingBoxDescent / 2 + 4 * scale);
+        ctx.lineTo(pos.x + measurements.width / 2, pos.y + measurements.fontBoundingBoxDescent / 2 + 4 * scale);
         ctx.stroke();
         ctx.lineWidth = 1 * scale;
         ctx.strokeStyle = color;
