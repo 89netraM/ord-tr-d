@@ -305,7 +305,7 @@ function renderScene(_: DOMHighResTimeStamp): void {
     }
 
     function nodeTextStyling(color: string): void {
-        ctx.font = `${3 * scale}rem "Comic Sans MS", "Comic Sans", cursive`;
+        ctx.font = `${3 * scale}rem "Comic Neue", cursive`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.strokeStyle = "#000000";
