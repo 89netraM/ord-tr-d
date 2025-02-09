@@ -21,6 +21,9 @@ export class WordNode {
     }
 
     public makeNext(word: string, isEnd: boolean): WordNode {
+        if (this.parent?.word === word) {
+            return this.parent;
+        }
         let next = this.children.find(node => node.word === word);
         if (next != null) {
             return next;
