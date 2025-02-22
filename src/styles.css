@@ -114,6 +114,13 @@ nav {
             background: none;
             color: transparent;
         }
+
+        &:disabled {
+            & ~ #letters > .guess-letter, & ~ #guess-button {
+                background-color: #aaaaaa;
+                pointer-events: none;
+            }
+        }
     }
 
     #letters {

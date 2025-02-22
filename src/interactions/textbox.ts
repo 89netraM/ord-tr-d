@@ -5,6 +5,7 @@ const guessButton = document.getElementById("guess-button") as HTMLButtonElement
 guessTextbox.addEventListener(
     "input",
     _ => {
+        if (guessTextbox.disabled) return;
         updateLetterSelection();
         guessTextbox.value = guessTextbox.value.toLowerCase().substring(0, 4);
         guessLetters.forEach(
@@ -27,6 +28,7 @@ guessTextbox.addEventListener(
 guessTextbox.addEventListener(
     "keydown",
     e => {
+        if (guessTextbox.disabled) return;
         if (e.key === "Enter") {
             e.target?.dispatchEvent(new GuessEvent(guessTextbox.value));
         }
@@ -36,6 +38,7 @@ guessTextbox.addEventListener(
 guessButton.addEventListener(
     "click",
     e => {
+        if (guessTextbox.disabled) return;
         e.target?.dispatchEvent(new GuessEvent(guessTextbox.value));
     }
 );
@@ -92,6 +95,10 @@ input.clear = () => {
     updateLetterSelection();
 };
 
+input.setIsActive = (value: boolean) => {
+    guessTextbox.disabled = !value;
+};
+
 export interface GuessInput extends HTMLDivElement {
     addEventListener<K extends keyof GlobalEventHandlersEventMap | "guess">(
         type: K,
@@ -104,6 +111,8 @@ export interface GuessInput extends HTMLDivElement {
     clear(): void;
 
     focus(): void;
+
+    setIsActive(value: boolean): void;
 }
 
 export class GuessEvent extends Event {

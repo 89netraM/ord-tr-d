@@ -13,6 +13,7 @@ export class WordNode {
     public constructor(
         public readonly word: string,
         public readonly isEnd: boolean = false,
+        public isActive: boolean = true,
         public parent: WordNode | null = null,
         public readonly isDisjointChild: boolean = false,
         public readonly level: number = 0,
@@ -21,18 +22,18 @@ export class WordNode {
     }
 
     public makeNext(word: string, isEnd: boolean): WordNode {
-        if (this.parent?.word === word) {
+        if (!this.isEnd && this.parent?.word === word) {
             return this.parent;
         }
         let next = this.children.find(node => node.word === word);
         if (next != null) {
             return next;
         }
-        return this.addChild(word, isEnd, false);
+        return this.addChild(word, isEnd, !isEnd, false);
     }
 
-    public addChild(word: string, isEnd: boolean, isDisjointChild: boolean): WordNode {
-        const child = new WordNode(word, isEnd, this, isDisjointChild, this.level + 1);
+    public addChild(word: string, isEnd: boolean, isActive: boolean, isDisjointChild: boolean): WordNode {
+        const child = new WordNode(word, isEnd, isActive, this, isDisjointChild, this.level + 1);
         this.children.push(child);
         return child;
     }
@@ -50,6 +51,13 @@ export class WordNode {
         return null;
     }
 
+    public findUp(predicate: (node: WordNode) => boolean): WordNode | null {
+        if (predicate(this)) {
+            return this;
+        }
+        return this.parent?.findUp(predicate) ?? null;
+    }
+
     public findDeepest(predicate: (node: WordNode) => boolean): WordNode | null {
         let found: WordNode | null = predicate(this) ? this : null;
         for (const child of this.children) {
@@ -59,6 +67,13 @@ export class WordNode {
             }
         }
         return found;
+    }
+
+    public visit(action: (node: WordNode) => void): void {
+        action(this);
+        for (const child of this.children) {
+            child.visit(action);
+        }
     }
 
     public *save(): Generator<WordNodeDb> {
@@ -95,6 +110,7 @@ export function loadWordNode(db: Array<WordNodeDb>): WordNode {
             new WordNode(
                 dbNode.word,
                 dbNode.isEnd,
+                false,
                 null,
                 dbNode.isDisjointChild,
                 dbNode.level,

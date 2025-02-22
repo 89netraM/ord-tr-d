@@ -20,6 +20,9 @@ window.addEventListener(
             navigator.serviceWorker.register("service-worker.js");
         }
 
+        const dailyWords = await downloadDailyWords();
+        const currentFromWord = dailyWords[currentDayId()].from;
+
         let state = load();
         if (state == null) {
             howToPlay.showModal();
@@ -29,8 +32,16 @@ window.addEventListener(
             state = await fetchDailyProblem(state);
         }
         let { rootNode, currentNode, goal, dayId } = state;
+        rootNode
+            .findDeepest(n => (n.isEnd || n.isDisjointChild || n.parent == null) && n.word === currentFromWord)!
+            .visit(n => {
+                if (n.word !== goal) {
+                    n.isActive = true;
+                }
+            });
 
         document.getElementById("goal")!.textContent = goal;
+        input.setIsActive(currentNode.isActive);
 
         const allowList = new Set<string>(await downloadWordList("all-words.json"));
         const validator = new WordValidator(allowList, goal);
@@ -45,6 +56,7 @@ window.addEventListener(
                     wordWeb.renderTree(rootNode, currentNode);
                     wordWeb.animateToNode(currentNode);
                     input.clear();
+                    input.setIsActive(currentNode.isActive);
                     save({ rootNode, currentNode, goal, dayId });
                 }
                 else {
@@ -70,7 +82,10 @@ window.addEventListener(
                 currentNode = e.selectedNode;
                 wordWeb.renderTree(rootNode, e.selectedNode);
                 wordWeb.animateToNode(currentNode);
-                input.focus();
+                input.setIsActive(currentNode.isActive);
+                if (currentNode.isActive) {
+                    input.focus();
+                }
                 save({ rootNode, currentNode, goal, dayId });
             }
         );
@@ -95,8 +110,6 @@ window.addEventListener(
         }
 
         async function fetchDailyProblem(state: State | null): Promise<State> {
-            const dayId = currentDayId();
-            const dailyWords = await downloadDailyWords();
             const from = dailyWords[dayId].from;
             const goal = dailyWords[dayId].to;
 
@@ -110,7 +123,7 @@ window.addEventListener(
 
             if (state != null) {
                 const lastNode = (state.rootNode.findDeepest(n => n.isEnd) ?? state.rootNode).findDeepest(_ => true)!;
-                const currentNode = lastNode.addChild(from, false, true);
+                const currentNode = lastNode.addChild(from, false, false, true);
                 save({ rootNode: state.rootNode, currentNode, goal, dayId });
                 return { rootNode: state.rootNode, currentNode, goal, dayId };
             }
