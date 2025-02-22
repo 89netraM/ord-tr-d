@@ -247,6 +247,11 @@ function renderScene(_: DOMHighResTimeStamp): void {
 
     ctx.clearRect(0, 0, width, height);
 
+    if (document.fonts.status !== "loaded") {
+        document.fonts.ready.then(() => window.requestAnimationFrame(renderScene));
+        return;
+    }
+
     nodePositions.splice(0, nodePositions.length);
     if (rootNode == null) {
         return;
@@ -305,7 +310,7 @@ function renderScene(_: DOMHighResTimeStamp): void {
     }
 
     function nodeTextStyling(color: string): void {
-        ctx.font = `${3 * scale}rem "Comic Neue", cursive`;
+        ctx.font = `${3 * scale}rem "Comic Neue"`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.strokeStyle = "#000000";

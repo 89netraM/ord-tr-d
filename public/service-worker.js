@@ -9,6 +9,7 @@ self.addEventListener("install", e => {
             "/index.js",
             "/index.css",
             "/all-words.json",
+            "/ComicNeue-Bold.ttf",
             "/daily-words.json",
             "/service-worker.js",
         ]);
