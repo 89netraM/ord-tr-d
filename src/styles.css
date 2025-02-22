@@ -44,7 +44,7 @@ nav {
         align-self: stretch;
         aspect-ratio: 1;
         padding: 0;
-        margin-inline-end: 0.5em;
+        margin-inline-end: 0.5rem;
     }
 }
 
@@ -92,6 +92,14 @@ nav {
     &,
     button {
         font-size: 2rem;
+    }
+
+    #define {
+        grid-area: left;
+        height: 1.4em;
+        aspect-ratio: 1;
+        padding: 0;
+        margin-inline-start: 0.5rem;
     }
 
     #guess-textbox {

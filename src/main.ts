@@ -1,4 +1,5 @@
 import "./styles.css";
+import { defineButton } from "./interactions/define-button.ts";
 import { input } from "./interactions/textbox.ts";
 import { wordWeb } from "./interactions/word-web.ts";
 import { howToPlay } from "./interactions/how-to-play.ts";
@@ -39,6 +40,7 @@ window.addEventListener(
                     n.isActive = true;
                 }
             });
+        defineButton.setWord(currentNode.word);
 
         document.getElementById("goal")!.textContent = goal;
         input.setIsActive(currentNode.isActive);
@@ -57,6 +59,7 @@ window.addEventListener(
                     wordWeb.animateToNode(currentNode);
                     input.clear();
                     input.setIsActive(currentNode.isActive);
+                    defineButton.setWord(currentNode.word);
                     save({ rootNode, currentNode, goal, dayId });
                 }
                 else {
