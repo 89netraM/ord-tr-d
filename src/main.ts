@@ -113,6 +113,7 @@ window.addEventListener(
         }
 
         async function fetchDailyProblem(state: State | null): Promise<State> {
+            const dayId = currentDayId();
             const from = dailyWords[dayId].from;
             const goal = dailyWords[dayId].to;
 
