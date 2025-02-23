@@ -1,19 +1,14 @@
 import { WordNode } from "../WordNode";
+import { WordTreeRenderer } from "../WordTreeRenderer";
 
 export const wordWeb = document.getElementById("word-web") as WordWeb;
 {
     const { width: initialWidth, height: initialHeight } = wordWeb.getBoundingClientRect();
     wordWeb.width = initialWidth;
     wordWeb.height = initialHeight;
-    wordWeb.pixelScale = 1.0;
 }
-const ctx = wordWeb.getContext("2d")!;
 
-let rootNode: WordNode | null = null;
-let zoom = 1;
-let offset: Vector = { x: 0, y: 0 };
-let currentNodeId: number | null = null;
-const nodePositions = new Array<[Vector, WordNode]>();
+const wordTreeRenderer = new WordTreeRenderer(wordWeb);
 
 const canvasResizeObserver = new ResizeObserver(entries => {
     const { inlineSize: width, blockSize: height } = entries[0].devicePixelContentBoxSize[0];
@@ -21,7 +16,7 @@ const canvasResizeObserver = new ResizeObserver(entries => {
     window.requestAnimationFrame(time => {
         wordWeb.width = width;
         wordWeb.height = height;
-        wordWeb.pixelScale = height / logicalHeight;
+        wordTreeRenderer.scale = height / logicalHeight;
         renderScene(time);
     });
 });
@@ -35,7 +30,7 @@ canvasResizeObserver.observe(wordWeb);
             return;
         }
         startMousePosition = { x: e.clientX | 0, y: e.clientY | 0 };
-        lastMousePosition = { x: e.clientX * wordWeb.pixelScale, y: e.clientY * wordWeb.pixelScale };
+        lastMousePosition = { x: e.clientX * wordTreeRenderer.scale, y: e.clientY * wordTreeRenderer.scale };
         e.preventDefault();
         cancelAnimation();
     });
@@ -44,10 +39,10 @@ canvasResizeObserver.observe(wordWeb);
             return;
         }
         if (lastMousePosition != null) {
-            const newMousePosition = { x: e.clientX * wordWeb.pixelScale, y: e.clientY * wordWeb.pixelScale };
-            offset = {
-                x: offset.x + newMousePosition.x - lastMousePosition.x,
-                y: offset.y + newMousePosition.y - lastMousePosition.y,
+            const newMousePosition = { x: e.clientX * wordTreeRenderer.scale, y: e.clientY * wordTreeRenderer.scale };
+            wordTreeRenderer.offset = {
+                x: wordTreeRenderer.offset.x + newMousePosition.x - lastMousePosition.x,
+                y: wordTreeRenderer.offset.y + newMousePosition.y - lastMousePosition.y,
             };
             lastMousePosition = newMousePosition;
             window.requestAnimationFrame(renderScene);
@@ -66,7 +61,7 @@ canvasResizeObserver.observe(wordWeb);
     }
     wordWeb.addEventListener("wheel", e => {
         if (e.deltaY != 0) {
-            setZoom(zoom * (1 - e.deltaY / 1000), { x: e.clientX * wordWeb.pixelScale, y: e.clientY * wordWeb.pixelScale });
+            wordTreeRenderer.setZoom(wordTreeRenderer.zoom * (1 - e.deltaY / 1000), { x: e.clientX * wordTreeRenderer.scale, y: e.clientY * wordTreeRenderer.scale });
             window.requestAnimationFrame(renderScene);
             e.preventDefault();
             cancelAnimation();
@@ -75,13 +70,11 @@ canvasResizeObserver.observe(wordWeb);
     wordWeb.addEventListener("click", e => {
         const mousePosition = { x: e.clientX, y: e.clientY };
         if (startMousePosition?.x == mousePosition.x && startMousePosition?.y == mousePosition.y || (e as any).pointerType !== "mouse") {
-            const scaledMousePosition = { x: mousePosition.x * wordWeb.pixelScale, y: mousePosition.y * wordWeb.pixelScale };
-            const distance = wordWeb.pixelScale * zoom * 50;
-            for (const [pos, node] of nodePositions) {
-                if (Math.hypot(scaledMousePosition.x - pos.x, scaledMousePosition.y - pos.y) < distance) {
-                    wordWeb.dispatchEvent(new SelectEvent(node));
-                    break;
-                }
+            const scaledMousePosition = { x: mousePosition.x * wordTreeRenderer.scale, y: mousePosition.y * wordTreeRenderer.scale };
+            const distance = wordTreeRenderer.scaledZoom * 50;
+            const foundNode = wordTreeRenderer.getNodeAt(scaledMousePosition, distance);
+            if (foundNode != null) {
+                wordWeb.dispatchEvent(new SelectEvent(foundNode));
             }
         }
     });
@@ -91,7 +84,7 @@ canvasResizeObserver.observe(wordWeb);
     const lastTouchPositions = new Map<number, Vector>();
     wordWeb.addEventListener("touchstart", e => {
         for (const touch of e.changedTouches) {
-            lastTouchPositions.set(touch.identifier, { x: touch.clientX * wordWeb.pixelScale, y: touch.clientY * wordWeb.pixelScale });
+            lastTouchPositions.set(touch.identifier, { x: touch.clientX * wordTreeRenderer.scale, y: touch.clientY * wordTreeRenderer.scale });
         }
         cancelAnimation();
     });
@@ -100,7 +93,7 @@ canvasResizeObserver.observe(wordWeb);
         let lastTouchDistance = calculateTouchDistance();
 
         for (const touch of e.changedTouches) {
-            const newTouchPosition = { x: touch.clientX * wordWeb.pixelScale, y: touch.clientY * wordWeb.pixelScale };
+            const newTouchPosition = { x: touch.clientX * wordTreeRenderer.scale, y: touch.clientY * wordTreeRenderer.scale };
             lastTouchPositions.set(touch.identifier, newTouchPosition);
         }
         let newTouchCenter = calculateTouchCenter();
@@ -109,15 +102,15 @@ canvasResizeObserver.observe(wordWeb);
         if (lastTouchCenter != null && newTouchCenter != null) {
             let updated = false;
             if (lastTouchCenter?.x != newTouchCenter?.x || lastTouchCenter?.y != newTouchCenter?.y) {
-                offset = {
-                    x: offset.x + newTouchCenter.x - lastTouchCenter.x,
-                    y: offset.y + newTouchCenter.y - lastTouchCenter.y,
+                wordTreeRenderer.offset = {
+                    x: wordTreeRenderer.offset.x + newTouchCenter.x - lastTouchCenter.x,
+                    y: wordTreeRenderer.offset.y + newTouchCenter.y - lastTouchCenter.y,
                 };
                 updated = true;
             }
             if (lastTouchDistance != null && newTouchDistance != null && lastTouchDistance != newTouchDistance) {
-                const newZoom = zoom * newTouchDistance / lastTouchDistance;
-                setZoom(newZoom, newTouchCenter);
+                const newZoom = wordTreeRenderer.zoom * newTouchDistance / lastTouchDistance;
+                wordTreeRenderer.setZoom(newZoom, newTouchCenter);
                 updated = true;
             }
             if (updated) {
@@ -178,7 +171,7 @@ let cancelAnimation: () => void;
             cancelAnimation();
             animationStart = performance.now();
             animationDuration = duration;
-            animationStartOffset = { x: offset.x, y: offset.y };
+            animationStartOffset = { x: wordTreeRenderer.offset.x, y: wordTreeRenderer.offset.y };
             animationTargetOffset = target;
             animationFrameId = window.requestAnimationFrame(animate);
         });
@@ -189,7 +182,7 @@ let cancelAnimation: () => void;
             return;
         }
         const progress = Math.min(1, (time - animationStart) / animationDuration);
-        offset = {
+        wordTreeRenderer.offset = {
             x: animationStartOffset.x + (animationTargetOffset.x - animationStartOffset.x) * progress,
             y: animationStartOffset.y + (animationTargetOffset.y - animationStartOffset.y) * progress,
         };
@@ -211,126 +204,39 @@ let cancelAnimation: () => void;
     };
 }
 
-function setZoom(newZoom: number, around: Vector): void {
-    newZoom = Math.max(0.1, Math.min(10, newZoom));
-    const diff = newZoom - zoom;
-    offset = {
-        x: offset.x + (offset.x - around.x) * diff / zoom,
-        y: offset.y + (offset.y - around.y) * diff / zoom,
-    };
-    zoom = newZoom;
-}
-
 wordWeb.renderTree = (root: WordNode, currentNode: WordNode | null): void => {
-    rootNode = root;
+    wordTreeRenderer.rootNode = root;
     if (currentNode != null) {
-        currentNodeId = currentNode.id;
+        wordTreeRenderer.currentNodeId = currentNode.id;
     }
     else {
         window.requestAnimationFrame(renderScene);
     }
 };
 wordWeb.moveToNode = (node: WordNode): void => {
-    const currentNodePosition = getPositionOfNode(node, zoom * wordWeb.pixelScale);
-    offset = {
-        x: wordWeb.width / 2 - (currentNodePosition.x - offset.x),
-        y: wordWeb.height / 2 - (currentNodePosition.y - offset.y),
+    const currentNodePosition = wordTreeRenderer.getPositionOfNode(node);
+    wordTreeRenderer.offset = {
+        x: wordWeb.width / 2 - (currentNodePosition.x - wordTreeRenderer.offset.x),
+        y: wordWeb.height / 2 - (currentNodePosition.y - wordTreeRenderer.offset.y),
     };
     window.requestAnimationFrame(renderScene);
 };
 wordWeb.animateToNode = (node: WordNode): Promise<boolean> => {
-    const currentNodePosition = getPositionOfNode(node, zoom * wordWeb.pixelScale);
+    const currentNodePosition = wordTreeRenderer.getPositionOfNode(node);
     const targetOffset = {
-        x: wordWeb.width / 2 - (currentNodePosition.x - offset.x),
-        y: wordWeb.height / 2 - (currentNodePosition.y - offset.y),
+        x: wordWeb.width / 2 - (currentNodePosition.x - wordTreeRenderer.offset.x),
+        y: wordWeb.height / 2 - (currentNodePosition.y - wordTreeRenderer.offset.y),
     };
     return animateTo(targetOffset, 250);
 };
 
 function renderScene(_: DOMHighResTimeStamp): void {
-    const { width, height, pixelScale } = wordWeb;
-    const scale = pixelScale * zoom;
-
-    ctx.clearRect(0, 0, width, height);
-
     if (document.fonts.status !== "loaded") {
         document.fonts.ready.then(() => window.requestAnimationFrame(renderScene));
         return;
     }
 
-    nodePositions.splice(0, nodePositions.length);
-    if (rootNode == null) {
-        return;
-    }
-    renderNode(rootNode);
-
-    function renderNode(node: WordNode): void {
-        const pos = getPositionOfNode(node, scale);
-        for (const child of node.children) {
-            if (!child.isDisjointChild) {
-                renderEdge(pos, getPositionOfNode(child, scale));
-            }
-            renderNode(child);
-        }
-        if (currentNodeId == node.id) {
-            renderUnderline(pos, node.word, getNodeColor(node));
-        }
-        renderText(pos, node.word, getNodeColor(node));
-        nodePositions.push([pos, node]);
-    }
-
-    function renderEdge(from: Vector, to: Vector): void {
-        ctx.strokeStyle = "#bada55";
-        ctx.lineWidth = 2 * scale;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
-    }
-
-    function getNodeColor(node: WordNode): string {
-        if (node.isEnd) {
-            return "#ffd700";
-        } else {
-            return "#ffffff";
-        }
-    }
-
-    function renderText(pos: Vector, text: string, color: string): void {
-        nodeTextStyling(color);
-        ctx.fillText(text, pos.x, pos.y);
-        ctx.strokeText(text, pos.x, pos.y);
-    }
-
-    function renderUnderline(pos: Vector, text: string, color: string): void {
-        nodeTextStyling(color);
-        ctx.lineWidth = 5 * scale;
-        const measurements = ctx.measureText(text);
-        ctx.beginPath();
-        ctx.moveTo(pos.x - measurements.width / 2, pos.y + measurements.fontBoundingBoxDescent / 2 + 4 * scale);
-        ctx.lineTo(pos.x + measurements.width / 2, pos.y + measurements.fontBoundingBoxDescent / 2 + 4 * scale);
-        ctx.stroke();
-        ctx.lineWidth = 1 * scale;
-        ctx.strokeStyle = color;
-        ctx.stroke();
-    }
-
-    function nodeTextStyling(color: string): void {
-        ctx.font = `${3 * scale}rem "Comic Neue"`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.strokeStyle = "#000000";
-        ctx.fillStyle = color;
-        ctx.lineWidth = 2 * scale;
-        ctx.lineCap = "round";
-    }
-}
-
-function getPositionOfNode(node: WordNode, scale: number): Vector {
-    return {
-        x: node.level * 250 * scale + offset.x,
-        y: node.offset * 150 * scale + offset.y,
-    }
+    wordTreeRenderer.renderWordThree();
 }
 
 export interface WordWeb extends HTMLCanvasElement {
@@ -344,8 +250,6 @@ export interface WordWeb extends HTMLCanvasElement {
 
     moveToNode(node: WordNode): void;
     animateToNode(node: WordNode): Promise<boolean>;
-
-    pixelScale: number;
 }
 
 export class SelectEvent extends Event {
