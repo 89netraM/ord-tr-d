@@ -86,6 +86,7 @@ window.addEventListener(
                 wordWeb.renderTree(rootNode, e.selectedNode);
                 wordWeb.animateToNode(currentNode);
                 input.setIsActive(currentNode.isActive);
+                defineButton.setWord(currentNode.word);
                 if (currentNode.isActive) {
                     input.focus();
                 }
