@@ -232,7 +232,7 @@ dialog {
         }
 
         #share-button {
-            display: flex;
+            display: none;
             align-items: center;
             gap: 1ch;
             position: absolute;
