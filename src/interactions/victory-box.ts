@@ -1,9 +1,19 @@
 import { WordNode } from "../WordNode";
+import { WordTreeRenderer } from "../WordTreeRenderer";
 
 export const victoryBox = document.getElementById("victory-box") as HTMLVictoryBoxElement;
 const stepsDisplay = document.getElementById("steps") as HTMLSpanElement;
 const shareParagraph = document.getElementById("share-paragraph") as HTMLParagraphElement;
 const shareButton = document.getElementById("share-button") as HTMLButtonElement;
+
+const shareCanvas = document.getElementById("share-canvas") as HTMLCanvasElement;
+const shareCanvasCtx = shareCanvas.getContext("bitmaprenderer")!;
+
+const offscreenCanvas = new OffscreenCanvas(shareCanvas.width, shareCanvas.height);
+const wordTreeRenderer = new WordTreeRenderer(offscreenCanvas);
+wordTreeRenderer.levelDistance = 150;
+wordTreeRenderer.offsetSpacing = 50;
+const letters = "abcdefghijklmnopqrstuvwxyzåäö";
 
 let shareData: ShareData | null = null;
 
@@ -37,8 +47,37 @@ victoryBox.showVictory = (startNode: WordNode, endNode: WordNode): void => {
     };
     shareParagraph.style.display = navigator.canShare(shareData) ? "block" : "none";
 
+    // Render to canvas
+    wordTreeRenderer.rootNode = startNode;
+    wordTreeRenderer.wordTransformer = n => n.word;
+    wordTreeRenderer.renderContained();
+    shareCanvasCtx.transferFromImageBitmap(offscreenCanvas.transferToImageBitmap());
+    // Render to screenshot
+    wordTreeRenderer.wordTransformer = n =>
+        n === startNode || n.word === endNode.word
+            ? n.word
+            : [...n.word].map(_ => letters[Math.floor(Math.random() * letters.length)]).join("");
+    wordTreeRenderer.renderWordTree();
+    offscreenCanvas.convertToBlob().then(shareScreenshot);
+
     victoryBox.showModal();
 };
+
+function shareScreenshot(blob: Blob | null): void {
+    if (blob == null) {
+        return;
+    }
+
+    const screenshot = new File([blob], "ord-trad.png", { type: "image/png" });
+    const shareDataWithScreenshot: ShareData = {
+        ...shareData,
+        files: [screenshot],
+    };
+    if (navigator.canShare(shareDataWithScreenshot)) {
+        shareData = shareDataWithScreenshot;
+        shareParagraph.style.display = "block";
+    }
+}
 
 export interface HTMLVictoryBoxElement extends HTMLDialogElement {
     showVictory(startNode: WordNode, endNode: WordNode): void;

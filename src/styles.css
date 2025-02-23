@@ -223,6 +223,14 @@ dialog {
 
 #victory-box {
     #share-paragraph {
+        text-align: end;
+
+        #share-canvas {
+            width: 100%;
+            display: inline-block;
+            aspect-ratio: 16 / 9;
+        }
+
         #share-button {
             display: inline-flex;
             align-items: center;

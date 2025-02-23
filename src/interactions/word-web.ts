@@ -236,7 +236,7 @@ function renderScene(_: DOMHighResTimeStamp): void {
         return;
     }
 
-    wordTreeRenderer.renderWordThree();
+    wordTreeRenderer.renderWordTree();
 }
 
 export interface WordWeb extends HTMLCanvasElement {
