@@ -4,6 +4,7 @@ import { input } from "./interactions/textbox.ts";
 import { wordWeb } from "./interactions/word-web.ts";
 import { howToPlay } from "./interactions/how-to-play.ts";
 import { toast } from "./interactions/toast.ts";
+import { victoryBox } from "./interactions/victory-box.ts";
 import { loadWordNode, WordNode } from "./WordNode.ts";
 import { treeLayout } from "./tree-layout.ts";
 import { ValidationResult, WordValidator } from "../shared/WordValidator.ts";
@@ -56,11 +57,18 @@ window.addEventListener(
                     currentNode = currentNode.makeNext(e.guess, e.guess == goal);
                     treeLayout(rootNode);
                     wordWeb.renderTree(rootNode, currentNode);
-                    wordWeb.animateToNode(currentNode);
+                    const animationPromise = wordWeb.animateToNode(currentNode);
                     input.clear();
                     input.setIsActive(currentNode.isActive);
                     defineButton.setWord(currentNode.word);
                     save({ rootNode, currentNode, goal, dayId });
+
+                    if (e.guess == goal) {
+                        const startNode = rootNode.findDeepest(n => (n.isEnd || n.isDisjointChild || n.parent == null) && n.word === currentFromWord)!;
+                        animationPromise
+                            .then(completed => completed ? new Promise<void>(r => setTimeout(r, 200)) : null)
+                            .then(() => victoryBox.showVictory(startNode, currentNode));
+                    }
                 }
                 else {
                     switch (validationResult) {

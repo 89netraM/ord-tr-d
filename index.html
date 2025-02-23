@@ -69,7 +69,15 @@
       </ol>
       <p>Kommer du till en "återvändsgränd", eller av någon annan anledning vill gå tillbaka till ett tidigare ord, kan du när som helst trycka på vilket ord som helst för att utgå från det.</p>
       <p>Det <u>understrukena</u> ordet är alltid det aktiva, vilket det nästa skrivena ordet utgår från.</p>
-      <button class="close-button">Spela!</button>
+      <p><button class="close-button">Spela!</button></p>
+    </dialog>
+    <dialog id="victory-box">
+      <h2>Grattis!</h2>
+      <p>Du klarade dagens ord tråd på <span id="steps" class="goal"></span> drag!</p>
+      <p id="share-paragraph">
+        <button id="share-button" type="button">Dela</button>
+      </p>
+      <p><button class="close-button">Tillbaka till orden</button></p>
     </dialog>
     <script type="module" src="/src/main.ts"></script>
   </body>

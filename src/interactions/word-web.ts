@@ -162,7 +162,7 @@ canvasResizeObserver.observe(wordWeb);
     }
 }
 
-let animateTo: (target: Vector, duration: number) => void;
+let animateTo: (target: Vector, duration: number) => Promise<boolean>;
 let cancelAnimation: () => void;
 {
     let animationFrameId: number | null = null;
@@ -170,14 +170,18 @@ let cancelAnimation: () => void;
     let animationDuration: number | null = null;
     let animationStartOffset: Vector | null = null;
     let animationTargetOffset: Vector | null = null;
+    let animationPromiseResolver: ((completed: boolean) => void) | null = null;
 
-    animateTo = (target: Vector, duration: number): void => {
-        cancelAnimation();
-        animationStart = performance.now();
-        animationDuration = duration;
-        animationStartOffset = { x: offset.x, y: offset.y };
-        animationTargetOffset = target;
-        animationFrameId = window.requestAnimationFrame(animate);
+    animateTo = (target: Vector, duration: number): Promise<boolean> => {
+        return new Promise<boolean>(r => {
+            animationPromiseResolver = r;
+            cancelAnimation();
+            animationStart = performance.now();
+            animationDuration = duration;
+            animationStartOffset = { x: offset.x, y: offset.y };
+            animationTargetOffset = target;
+            animationFrameId = window.requestAnimationFrame(animate);
+        });
     };
 
     function animate(time: DOMHighResTimeStamp): void {
@@ -194,6 +198,7 @@ let cancelAnimation: () => void;
             animationFrameId = window.requestAnimationFrame(animate);
         } else {
             animationFrameId = null;
+            animationPromiseResolver?.(true);
         }
     }
 
@@ -201,6 +206,7 @@ let cancelAnimation: () => void;
         if (animationFrameId != null) {
             window.cancelAnimationFrame(animationFrameId);
             animationFrameId = null;
+            animationPromiseResolver?.(false);
         }
     };
 }
@@ -232,13 +238,13 @@ wordWeb.moveToNode = (node: WordNode): void => {
     };
     window.requestAnimationFrame(renderScene);
 };
-wordWeb.animateToNode = (node: WordNode): void => {
+wordWeb.animateToNode = (node: WordNode): Promise<boolean> => {
     const currentNodePosition = getPositionOfNode(node, zoom * wordWeb.pixelScale);
     const targetOffset = {
         x: wordWeb.width / 2 - (currentNodePosition.x - offset.x),
         y: wordWeb.height / 2 - (currentNodePosition.y - offset.y),
     };
-    animateTo(targetOffset, 250);
+    return animateTo(targetOffset, 250);
 };
 
 function renderScene(_: DOMHighResTimeStamp): void {
@@ -337,7 +343,7 @@ export interface WordWeb extends HTMLCanvasElement {
     renderTree(root: WordNode, currentNode: WordNode | null): void;
 
     moveToNode(node: WordNode): void;
-    animateToNode(node: WordNode): void;
+    animateToNode(node: WordNode): Promise<boolean>;
 
     pixelScale: number;
 }
