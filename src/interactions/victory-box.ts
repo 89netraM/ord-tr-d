@@ -9,6 +9,8 @@ const shareButton = document.getElementById("share-button") as HTMLButtonElement
 const shareCanvas = document.getElementById("share-canvas") as HTMLCanvasElement;
 const shareCanvasCtx = shareCanvas.getContext("bitmaprenderer")!;
 
+const installButton = document.getElementById("install-button") as HTMLButtonElement;
+
 const offscreenCanvas = new OffscreenCanvas(shareCanvas.width, shareCanvas.height);
 const wordTreeRenderer = new WordTreeRenderer(offscreenCanvas);
 wordTreeRenderer.levelDistance = 150;
@@ -78,6 +80,19 @@ function shareScreenshot(blob: Blob | null): void {
         shareParagraph.style.display = "block";
     }
 }
+
+let installPrompt: any = null;
+window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    installPrompt = e;
+    installButton.style.display = "flex";
+});
+installButton.addEventListener("click", async _ => {
+    const result = await installPrompt?.prompt();
+    if (result?.outcome === "accepted") {
+        installButton.style.display = "none";
+    }
+});
 
 export interface HTMLVictoryBoxElement extends HTMLDialogElement {
     showVictory(startNode: WordNode, endNode: WordNode): void;

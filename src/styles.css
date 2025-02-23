@@ -223,7 +223,7 @@ dialog {
 
 #victory-box {
     #share-paragraph {
-        text-align: end;
+        position: relative;
 
         #share-canvas {
             width: 100%;
@@ -232,12 +232,34 @@ dialog {
         }
 
         #share-button {
-            display: inline-flex;
+            display: flex;
+            align-items: center;
+            gap: 1ch;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+
+            &::after {
+                content: url("data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20stroke%3D%22%23000000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%204L2%204L2%2022L20%2022L20%2015%22%2F%3E%3Cpath%20d%3D%22M22%208%20L15%202L15%206C7%206%2C6%2010%2C6%2018C6%2018%2C11%2010%2C15%2010L15%2014Z%22%2F%3E%3C%2Fsvg%3E");
+                display: inline-block;
+                height: 1.75em;
+                aspect-ratio: 1;
+            }
+        }
+    }
+
+    p:has(#install-button) {
+        display: flex;
+        justify-content: space-between;
+
+        #install-button {
+            display: none;
+
             align-items: center;
             gap: 1ch;
 
             &::after {
-                content: url("data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20stroke%3D%22%23000000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%204L2%204L2%2022L20%2022L20%2015%22%2F%3E%3Cpath%20d%3D%22M22%208%20L15%202L15%206C7%206%2C6%2010%2C6%2018C6%2018%2C11%2010%2C15%2010L15%2014Z%22%2F%3E%3C%2Fsvg%3E");
+                content: url("data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%2024%2024%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20stroke%3D%22%23000000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M6%205L2%205L2%2022L22%2022L22%205L18%205%22%2F%3E%3Cpath%20d%3D%22M14%2012L18%2012L12%2019L6%2012L10%2012L12%202Z%22%2F%3E%3C%2Fsvg%3E");
                 display: inline-block;
                 height: 1.75em;
                 aspect-ratio: 1;
