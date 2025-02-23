@@ -26,19 +26,21 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
     e.respondWith((async () => {
-        try {
-            const preloadedResponse = await e.preloadResponse;
-            if (preloadedResponse) {
-                await putInCache(e.request, preloadedResponse);
-                return preloadedResponse;
-            }
-        } catch { }
-
-        try {
-            const networkResponse = await fetch(e.request);
-            await putInCache(e.request, networkResponse);
-            return networkResponse;
-        } catch { }
+        if (self.navigator.onLine !== false) {
+            try {
+                const preloadedResponse = await e.preloadResponse;
+                if (preloadedResponse) {
+                    await putInCache(e.request, preloadedResponse);
+                    return preloadedResponse;
+                }
+            } catch { }
+    
+            try {
+                const networkResponse = await fetch(e.request);
+                await putInCache(e.request, networkResponse);
+                return networkResponse;
+            } catch { }
+        }
 
         const cachedResponse = await caches.match(e.request);
         if (cachedResponse) {
