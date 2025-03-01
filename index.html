@@ -45,6 +45,13 @@
           <circle cx="12" cy="18" r="1.5" fill="#ffffff" stroke="none" />
         </svg>
       </button>
+      <button id="info" type="button" title="Info">
+        <svg viewBox="0 0 24 24" stroke="#ffffff" fill="none" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M 12 12 v 6" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="12" cy="8" r="1.5" fill="#ffffff" stroke="none" />
+        </svg>
+      </button>
     </nav>
     <h1 id="goal"></h1>
     <div id="toast" class="overlay">Okänt ord</div>
@@ -83,6 +90,12 @@
         <button class="close-button">Tillbaka till orden</button>
         <button id="install-button">Installera Ord Tråd som app</button>
       </p>
+    </dialog>
+    <dialog id="info-box">
+      <h2>Om Ord Tråd</h2>
+      <p>Ord Tråd är ett spel skapat av <a href="https://xn--sberg-lra.net/">Mårten Åsberg</a>.</p>
+      <p>Har du synpunkter, förbättringsförslag, eller buggar att rapportera, kan du göra det via <a href="https://github.com/89netraM/ord-tr-d/issues/new">GitHub Issues</a> (ett GitHub konto krävs).</p>
+      <p><button class="close-button">Tillbaka till orden</button></p>
     </dialog>
     <script type="module" src="/src/main.ts"></script>
   </body>

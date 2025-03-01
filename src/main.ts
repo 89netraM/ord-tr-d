@@ -3,6 +3,7 @@ import { defineButton } from "./interactions/define-button.ts";
 import { input } from "./interactions/textbox.ts";
 import { wordWeb } from "./interactions/word-web.ts";
 import { howToPlay } from "./interactions/how-to-play.ts";
+import "./interactions/info-box.ts";
 import { toast } from "./interactions/toast.ts";
 import { victoryBox } from "./interactions/victory-box.ts";
 import { loadWordNode, WordNode } from "./WordNode.ts";
@@ -101,10 +102,6 @@ window.addEventListener(
                 save({ rootNode, currentNode, goal, dayId });
             }
         );
-
-        document.getElementById("help")?.addEventListener("click", () => {
-            howToPlay.showModal();
-        });
 
         treeLayout(rootNode);
         wordWeb.renderTree(rootNode, currentNode);

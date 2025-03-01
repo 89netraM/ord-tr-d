@@ -26,25 +26,32 @@ nav {
     padding: 0.5em 0;
     grid-area: nav;
     display: grid;
-    grid-template: "title help" auto;
-    grid-template-columns: 1fr auto;
+    grid-template: "title help info" auto;
+    grid-template-columns: 1fr auto auto;
 
     h2 {
         grid-row: title;
-        grid-column: title-start / help-end;
+        grid-column: title-start / info-end;
         color: #ffffff;
         margin: 0;
         text-align: center;
     }
 
-    #help {
-        grid-area: help;
+    button {
         border: none;
         background: none;
         align-self: stretch;
         aspect-ratio: 1;
         padding: 0;
-        margin-inline-end: 0.5rem;
+        margin-inline: 0.5rem;
+
+        &#help {
+            grid-area: help;
+        }
+
+        &#info {
+            grid-area: info;
+        }
     }
 }
 
@@ -218,6 +225,10 @@ dialog {
 
     button {
         outline: none;
+    }
+
+    a {
+        color: #bada55;
     }
 }
 

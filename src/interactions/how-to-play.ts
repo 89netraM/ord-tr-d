@@ -12,3 +12,7 @@ howToPlay.addEventListener("click", e => {
         howToPlay.close();
     }
 });
+
+document.getElementById("help")?.addEventListener("click", () => {
+    howToPlay.showModal();
+});
