@@ -55,6 +55,9 @@ window.addEventListener(
             e => {
                 const validationResult = validator.validateGuess(currentNode.word, e.guess);
                 if (validationResult === ValidationResult.Success) {
+                    if (e.guess.toLocaleLowerCase("sv") === goal.toLocaleLowerCase("sv")) {
+                        e.guess = goal;
+                    }
                     currentNode = currentNode.makeNext(e.guess, e.guess == goal);
                     treeLayout(rootNode);
                     wordWeb.renderTree(rootNode, currentNode);

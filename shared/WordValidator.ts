@@ -1,9 +1,12 @@
 export class WordValidator {
+    public readonly goalWord: string | null;
+
     readonly #allowList: ReadonlySet<string>;
 
     public constructor(
         allowList: ReadonlySet<string>,
-        public goalWord: string | null) {
+        goalWord: string | null) {
+        this.goalWord = goalWord?.toLocaleLowerCase("sv") ?? null;
         this.#allowList = allowList;
     }
 
@@ -16,6 +19,8 @@ export class WordValidator {
     }
 
     public validateGuess(currentWord: string, guessWord: string): ValidationResult {
+        currentWord = currentWord.toLocaleLowerCase("sv");
+        guessWord = guessWord.toLocaleLowerCase("sv");
         if (guessWord.length !== currentWord.length) {
             return ValidationResult.IllegalMove;
         }
