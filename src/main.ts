@@ -90,6 +90,16 @@ window.addEventListener(
             }
         );
 
+        document.addEventListener(
+            "visibilitychange",
+            () => {
+                if (document.hidden) return;
+                if (dayId === currentDayId()) return;
+                const [initialState, _] = loadDaily();
+                ({ rootNode, currentNode, goal, dayId, currentFromWord } = setupState(initialState));
+            }
+        );
+
         function loadDaily(): [State, boolean] {
             let state = load();
             let isFirstTime = state == null;
