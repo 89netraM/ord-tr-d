@@ -19,10 +19,14 @@ guessTextbox.addEventListener("focus", updateLetterSelection);
 guessTextbox.addEventListener("selectionchange", updateLetterSelection);
 guessTextbox.addEventListener(
     "blur",
-    _ => {
+    e => {
         guessLetters.forEach(
             letter => letter.classList.remove("selected")
         );
+        if (e.relatedTarget === guessButton) {
+            e.preventDefault();
+            guessTextbox.focus();
+        }
     }
 );
 guessTextbox.addEventListener(
