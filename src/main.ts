@@ -24,28 +24,12 @@ window.addEventListener(
         }
 
         const dailyWords = await downloadDailyWords();
-        const currentFromWord = dailyWords[currentDayId()].from;
 
-        let state = load();
-        if (state == null) {
+        const [initialState, isFirstTime] = loadDaily();
+        if (isFirstTime) {
             howToPlay.showModal();
-            state = await fetchDailyProblem(null);
         }
-        if (state?.dayId !== currentDayId()) {
-            state = await fetchDailyProblem(state);
-        }
-        let { rootNode, currentNode, goal, dayId } = state;
-        rootNode
-            .findDeepest(n => (n.isEnd || n.isDisjointChild || n.parent == null) && n.word === currentFromWord)!
-            .visit(n => {
-                if (n.word !== goal) {
-                    n.isActive = true;
-                }
-            });
-        defineButton.setWord(currentNode.word);
-
-        document.getElementById("goal")!.textContent = goal;
-        input.setIsActive(currentNode.isActive);
+        let { rootNode, currentNode, goal, dayId, currentFromWord } = setupState(initialState);
 
         const allowList = new Set<string>(await downloadWordList("all-words.json"));
         const validator = new WordValidator(allowList, goal);
@@ -106,9 +90,14 @@ window.addEventListener(
             }
         );
 
-        treeLayout(rootNode);
-        wordWeb.renderTree(rootNode, currentNode);
-        wordWeb.moveToNode(currentNode);
+        function loadDaily(): [State, boolean] {
+            let state = load();
+            let isFirstTime = state == null;
+            if (state?.dayId !== currentDayId()) {
+                state = fetchDailyProblem(state);
+            }
+            return [state, isFirstTime];
+        }
 
         function load(): State | null {
             const saveState = localStorage.getItem("save-state");
@@ -121,7 +110,7 @@ window.addEventListener(
             return { rootNode, currentNode, goal: goalWord, dayId };
         }
 
-        async function fetchDailyProblem(state: State | null): Promise<State> {
+        function fetchDailyProblem(state: State | null): State {
             const dayId = currentDayId();
             const from = dailyWords[dayId].from;
             const goal = dailyWords[dayId].to;
@@ -144,6 +133,27 @@ window.addEventListener(
             const rootNode = new WordNode(from);
 
             return { rootNode, currentNode: rootNode, goal, dayId };
+        }
+
+        function setupState(state: State): State & { currentFromWord: string } {
+            const currentFromWord = dailyWords[state.dayId].from;
+            state.rootNode
+                .findDeepest(n => (n.isEnd || n.isDisjointChild || n.parent == null) && n.word === currentFromWord)!
+                .visit(n => {
+                    if (n.word !== state.goal) {
+                        n.isActive = true;
+                    }
+                });
+            defineButton.setWord(state.currentNode.word);
+
+            document.getElementById("goal")!.textContent = state.goal;
+            input.setIsActive(state.currentNode.isActive);
+
+            treeLayout(state.rootNode);
+            wordWeb.renderTree(state.rootNode, state.currentNode);
+            wordWeb.moveToNode(state.currentNode);
+
+            return { ...state, currentFromWord };
         }
 
         function save(state: State) {
