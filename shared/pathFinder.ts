@@ -1,7 +1,6 @@
-import { XORShift } from "random-seedable";
-import { WordValidator } from "../shared/WordValidator";
+import { WordValidator } from "./WordValidator";
 
-export function findPathToNextGoal(wordList: ReadonlySet<string>, pathLength: number, forbiddenWords: ReadonlySet<string>, fromWord: string, random: XORShift): Array<string> | null {
+export function findPathToNextGoal(wordList: ReadonlySet<string>, pathLength: number, forbiddenWords: ReadonlySet<string>, fromWord: string, shuffler: (array: Array<string>) => Array<string>): Array<string> | null {
     const validator = new WordValidator(wordList, null);
     const visitedWords = new Map([[fromWord, null]]);
     const queue: Array<[string, number]> = [[fromWord, 0]];
@@ -9,7 +8,7 @@ export function findPathToNextGoal(wordList: ReadonlySet<string>, pathLength: nu
         visitedWords,
         queue,
         (word: string, steps: number) => steps === pathLength && !forbiddenWords.has(word),
-        (word: string) => random.shuffle([...validator.getAllPossibleNextWords(word)]));
+        (word: string) => shuffler([...validator.getAllPossibleNextWords(word)]));
     if (toWord == null) {
         return null;
     }

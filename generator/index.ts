@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "fs";
 import { XORShift } from "random-seedable";
-import { findPathToNextGoal } from "./pathFinder";
+import { findPathToNextGoal } from "../shared/pathFinder";
 import { join } from "path";
 
 const wordList = new Set<string>(JSON.parse(readFileSync(join(__dirname, "../public/common-words.json"), "utf8")));
@@ -13,7 +13,7 @@ const goalWords = new Set<string>([fromWord]);
 const dailyWords: { [day: number]: { from: string, to: string }} = {};
 
 for (let day = 0; true; day++) {
-    let path = findPathToNextGoal(wordList, pathLength, goalWords, fromWord, random);
+    let path = findPathToNextGoal(wordList, pathLength, goalWords, fromWord, random.shuffle);
     if (path == null) {
         break;
     }
