@@ -73,11 +73,25 @@
         <span class="guess-letter"></span>
         <span class="guess-letter"></span>
       </label>
-      <button id="guess-button" type="button" tabindex="0" title="Gissa">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M 6 12 L 4 4L 20 12 L 4 20 Z L 10 12" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </button>
+      <div id="right-buttons">
+        <button id="guess-button" type="button" tabindex="0" title="Gissa">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 6 12 L 4 4L 20 12 L 4 20 Z L 10 12" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <div id="bonus-buttons">
+          <button id="back-to-daily-button" type="button" tabindex="0" title="Tillbaka till dagens" hidden>
+            <span>Tillbaka</span>
+          </button>
+          <button id="start-bonus-game-button" type="button" tabindex="0" title="Bonusspel">
+            <span>Bonus Ord</span>
+            <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M 12 6 L 12 18 M 6 12 L 18 12" stroke-linecap="round" stroke-linejoin="round" transform-origin="12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
     <dialog id="victory-box">
       <h2>Grattis!</h2>
@@ -95,6 +109,14 @@
       <h2>Om Ord Tråd</h2>
       <p>Ord Tråd är ett spel skapat av <a href="https://xn--sberg-lra.net/">Mårten Åsberg</a>.</p>
       <p>Har du synpunkter, förbättringsförslag, eller buggar att rapportera, kan du göra det via <a href="https://github.com/89netraM/ord-tr-d/issues/new">GitHub Issues</a> (ett GitHub konto krävs).</p>
+      <p><button class="close-button">Tillbaka till orden</button></p>
+    </dialog>
+    <dialog id="bonus-box">
+      <h2>Bonus Ord</h2>
+      <p>Vill du spela fler ord idag?</p>
+      <p>Genom att stödja utvecklingen av Ord Tråd med en liten summa kan du låsa upp över två miljoner nya ord uppgifter.</p>
+      <p><button id="buy-bonus">Köp bonus ord</button></p>
+      <p><small>Köpet gäller endast på denna enhet/webbläsare. Kakor används för att spåra köp. Köpet hävs om kakor rensas.</small></p>
       <p><button class="close-button">Tillbaka till orden</button></p>
     </dialog>
     <script type="module" src="/src/main.ts"></script>

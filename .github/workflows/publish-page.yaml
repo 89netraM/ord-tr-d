@@ -18,6 +18,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-22.04
+    environment: github-pages
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -31,6 +32,7 @@ jobs:
       - name: Build project
         env:
           BASE_URL: /
+          VITE_PAYMENT_URL: ${{ vars.VITE_PAYMENT_URL }}
         run: npm run build
 
       - name: Setup Pages

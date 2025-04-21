@@ -1,4 +1,5 @@
 import "./styles.css";
+import { bonusButton } from "./interactions/bonus-button.ts";
 import { defineButton } from "./interactions/define-button.ts";
 import { input } from "./interactions/textbox.ts";
 import { wordWeb } from "./interactions/word-web.ts";
@@ -10,6 +11,7 @@ import { loadWordNode, WordNode } from "./WordNode.ts";
 import { treeLayout } from "./tree-layout.ts";
 import { ValidationResult, WordValidator } from "../shared/WordValidator.ts";
 import { downloadWordList, downloadDailyWords } from "./wordList.ts";
+import { createPath } from "./pathCreator.ts";
 
 window.addEventListener(
     "load",
@@ -23,13 +25,15 @@ window.addEventListener(
             navigator.serviceWorker.register("service-worker.js");
         }
 
+        let saveTarget = "save-state";
+
         const dailyWords = await downloadDailyWords();
 
         const [initialState, isFirstTime] = loadDaily();
         if (isFirstTime) {
             howToPlay.showModal();
         }
-        let { rootNode, currentNode, goal, dayId, currentFromWord } = setupState(initialState);
+        let { rootNode, currentNode, goal, dayId, currentFromWord } = setupState(initialState, dailyWords[initialState.dayId].from);
 
         const allowList = new Set<string>(await downloadWordList("all-words.json"));
         const validator = new WordValidator(allowList, goal);
@@ -95,10 +99,28 @@ window.addEventListener(
             () => {
                 if (document.hidden) return;
                 if (dayId === currentDayId()) return;
+                saveTarget = "save-state";
                 const [initialState, _] = loadDaily();
-                ({ rootNode, currentNode, goal, dayId, currentFromWord } = setupState(initialState));
+                ({ rootNode, currentNode, goal, dayId, currentFromWord } = setupState(initialState, dailyWords[initialState.dayId].from));
             }
         );
+
+        bonusButton.addEventListener("startbonusgame", async e => {
+            const path = await createPath();
+            if (path == null) return;
+            goal = path[4];
+            rootNode = currentNode = new WordNode(path[0]);
+            saveTarget = "bonus-state";
+            ({ rootNode, currentNode, goal, currentFromWord } = setupState({ rootNode, currentNode, goal, dayId: 0 }, path[0]));
+            e.success();
+        });
+
+        bonusButton.addEventListener("backtodaily", e => {
+            saveTarget = "save-state";
+            const [initialState, _] = loadDaily();
+            ({ rootNode, currentNode, goal, currentFromWord } = setupState(initialState, dailyWords[initialState.dayId].from));
+            e.success();
+        });
 
         function loadDaily(): [State, boolean] {
             let state = load();
@@ -110,7 +132,7 @@ window.addEventListener(
         }
 
         function load(): State | null {
-            const saveState = localStorage.getItem("save-state");
+            const saveState = localStorage.getItem(saveTarget);
             if (saveState == null) {
                 return null;
             }
@@ -145,8 +167,7 @@ window.addEventListener(
             return { rootNode, currentNode: rootNode, goal, dayId };
         }
 
-        function setupState(state: State): State & { currentFromWord: string } {
-            const currentFromWord = dailyWords[state.dayId].from;
+        function setupState(state: State, currentFromWord: string): State & { currentFromWord: string } {
             state.rootNode
                 .findDeepest(n => (n.isEnd || n.isDisjointChild || n.parent == null) && n.word === currentFromWord)!
                 .visit(n => {
@@ -173,7 +194,7 @@ window.addEventListener(
                 goalWord: state.goal,
                 dayId: state.dayId,
             });
-            localStorage.setItem("save-state", saveState);
+            localStorage.setItem(saveTarget, saveState);
         }
 
         function currentDayId(): number {

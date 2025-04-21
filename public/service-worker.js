@@ -12,6 +12,9 @@ self.addEventListener("install", e => {
             "/ComicNeue-Bold.ttf",
             "/daily-words.json",
             "/service-worker.js",
+            "/pathCreator-worker.js",
+            "/bonus-ord",
+            "/bonus-ord/index.html",
         ]);
     })());
 });

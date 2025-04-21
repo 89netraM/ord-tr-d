@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="sv" translate="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
+    <link rel="icon" href="../icons/16.png" />
+    <title>Ord Tråd - Bonus Ord</title>
+    <style>
+      html {
+        background-color: #333333;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100svh;
+        overflow: hidden;
+        color: #ffffff;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      p > span {
+        opacity: 0;
+
+        &:nth-of-type(1) {
+          animation: blink 1s linear 0s infinite;
+        }
+        &:nth-of-type(2) {
+          animation: blink 1s linear 0.33s infinite;
+        }
+        &:nth-of-type(3) {
+          animation: blink 1s linear 0.67s infinite;
+        }
+      }
+      @keyframes blink {
+        0% { opacity: 0; }
+        50% { opacity: 1; }
+        100% { opacity: 0; }
+      }
+      a {
+        cursor: pointer;
+        visibility: hidden;
+        animation: show 0s linear 1s 1 forwards;
+        color: aqua;
+      }
+      h1, p {
+        text-align: center;
+      }
+      @keyframes show {
+        99% { visibility: hidden; }
+        100% { visibility: visible; }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Bonus Ord</h1>
+    <p>Köpet har gått igenom<span>.</span><span>.</span><span>.</span></p>
+    <p><a href="javascript:window.close()">Stäng</a></p>
+    <script>
+      localStorage.setItem("purchase-state", JSON.stringify(true));
+      const channel = new BroadcastChannel("bonus-channel");
+      channel.postMessage({ kind: "purchase-success" });
+      setTimeout(900, () => {
+        window.close();
+      });
+    </script>
+  </body>
+</html>

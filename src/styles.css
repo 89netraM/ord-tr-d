@@ -176,13 +176,6 @@ nav {
         }
     }
 
-    #guess-button {
-        grid-area: right;
-        justify-self: left;
-        cursor: pointer;
-        margin-left: 0.25em;
-    }
-
     .guess-letter,
     #guess-button {
         width: 1.3ch;
@@ -196,6 +189,69 @@ nav {
         display: inline;
         box-sizing: content-box;
     }
+
+    #right-buttons {
+        grid-area: right;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 0.25em;
+
+        #guess-button {
+            cursor: pointer;
+            margin-left: 0.25em;
+        }
+    
+        #bonus-buttons {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+    
+            button {
+                background-color: #ffffff;
+                border: none;
+                border-radius: 0.25em;
+                padding: 0.1em;
+                color: #333333;
+                flex-direction: row;
+                align-items: center;
+                margin-inline-end: 0.25em;
+                outline: none;
+    
+                &:not([hidden]) {
+                    display: flex;
+                }
+    
+                span {
+                    font-size: 0.5em;
+                    margin-inline: 0.25em;
+                }
+                svg {
+                    aspect-ratio: 1;
+                    width: 1.5ch;
+    
+                    &.loading {
+                        circle {
+                            animation: spin 5s linear infinite;
+                            stroke-dasharray: 53 10;
+                        }
+                        path {
+                            animation: bounce 1.25s linear infinite alternate;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@keyframes spin {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: -63; }
+}
+@keyframes bounce {
+    0% { transform: scale(1.1); }
+    100% { transform: scale(0.75); }
 }
 
 dialog {
